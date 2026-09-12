@@ -1,3 +1,18 @@
+# Demo run — console output
+
+Full output of `bash run_demo.sh` from a clean state. Reproduce it with:
+
+```bash
+rm -rf state demo/repo report.html
+bash run_demo.sh
+```
+
+The demo builds a synthetic repository whose commit history deliberately contains the attacks any contribution ledger meets: a sybil dump, held-out contamination, personal data, a forged compute proof, and an "improvement" measured on the wrong set.
+
+**Result: 1,498.42 points across 10 entries, chain intact, recomputation from git produces an identical result, 16/16 guarantees confirmed.**
+
+---
+
 === init ===
 Инициализировано: /home/user/openshare-ledger
   состояние: /home/user/openshare-ledger/state
@@ -38,12 +53,12 @@ held-out: 30 записей, dataset_hash 275746e2d452…
 цепочка цела: 10 записей
 Всего начислено: 1498.42
 Снимок: /home/user/openshare-ledger/state/snapshots/2026-09.json
-Якорь (dry-run, arweave): root 4353a117c78d19d1…
+Якорь (dry-run, rfc3161): root b5329b8687771395…
 Отчёт: /home/user/openshare-ledger/report.html
 
 === status ===
 Проект: OpenShare AI (старт 2026-08)
-Конфиг: 4655afc21737dbbd…
+Конфиг: 1647917e3e5eb3e5…
 цепочка цела: 10 записей
 Начислено всего: 1498.42 (кап 5000000)
 Участников: 6

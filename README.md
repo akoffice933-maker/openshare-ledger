@@ -1,152 +1,159 @@
 # Contribution Ledger — MVP
 
-> **EN** — Open infrastructure for verifiable contribution attribution in community-trained AI.
-> Git is the source of truth. Every contribution is scored against measurable work and recorded in an append-only SHA-256 hash chain that is public and replayable from git. No external infrastructure, no trust required: anyone can recompute the chain and verify the result.
->
-> Ledger MVP is built and self-tested: 10 entries, 1,498.42 points, chain verified, 16/16 guarantees confirmed.
+Open infrastructure for verifiable contribution attribution in **community-trained AI**.
 
-**Реестр вкладов для community-owned AI проекта.** Git — источник истины, начисление — только за измеримый вклад, история — append-only с хеш-цепочкой. Git — источник истины, начисление — только за измеримый вклад, история — append-only с хеш-цепочкой.
+Git is the source of truth. Contributions are scored only against measurable work, and history is stored as an append-only SHA-256 hash chain that is public and replayable from git. No external infrastructure, no trust required: anyone can recompute the chain and verify the result.
 
 ```
-git-история → валидаторы → начисление → append-only леджер → снимок + якорь
+git history → validators → scoring → append-only ledger → snapshot + anchor
 ```
 
-Хеш-цепочка нужна ровно для одного: чтобы **нельзя было переписать историю вкладов задним числом**. Никакой внешней инфраструктуры — цепочка воспроизводится из git.
+The hash chain exists for exactly one reason: so that **history cannot be rewritten retroactively**. Nothing external is required — the chain replays from git.
+
+Ledger MVP is built and self-tested: **10 entries, 1,498.42 points, chain verified, 16/16 guarantees confirmed.**
+
+Русская версия: [`README.ru.md`](README.ru.md)
 
 ---
 
-## Быстрый старт
+## Quick start
 
 ```bash
 cd openshare-ledger
 
-# 1. структура состояния
+# 1. state directory structure
 python3 -m ledger init
 
-# 2. зарегистрировать приватный held-out сет (в репозиторий он не попадает)
+# 2. register the private held-out set (never enters the repository)
 python3 -m ledger heldout --file private/golden.jsonl
 
-# 3. создать демо-репозиторий с историей вкладов
+# 3. build a demo repository with a contribution history
 python3 tools/make_demo_repo.py
 
-# 4. посмотреть, что видно в git
+# 4. see what is visible in git
 python3 -m ledger collect --repo demo/repo
 
-# 5. начислить points, сделать снимок, зафиксировать якорь, собрать отчёт
+# 5. score points, take a snapshot, fix the anchor, build the report
 python3 -m ledger score --repo demo/repo --cycle 2026-09
 
-# 6. проверить цепочку и воспроизводимость начислений
+# 6. verify the chain and reproducibility of scoring
 python3 -m ledger verify --repo demo/repo --recompute --cycle 2026-09
 
-# 7. проверить гарантии
+# 7. verify the guarantees
 python3 -m ledger selftest
 ```
 
-Результат: `state/entries.jsonl`, `state/snapshots/2026-09.json`, `state/anchors.log`, `report.html`.
+Output: `state/entries.jsonl`, `state/snapshots/2026-09.json`, `state/anchors.log`, `report.html`.
 
 ---
 
-## Что получается на демо-данных
+## What the demo data produces
 
-| Участник | Вклад | Points | Комментарий |
+| Contributor | Contribution | Points | Note |
 |---|---|---:|---|
-| Sofia Marin | 3 подтверждённых дефекта в eval-сете | 750.00 | 4-й дефект не подтверждён — не оплачен |
-| Ivan Petrov | 48 GPU-часов при утилизации 0.92 | 529.92 | второй proof с утилизацией 1.4 отклонён |
-| Dmitri Volkov | дообучение, дельта +0.021 | 84.00 | «улучшение» не на held-out сете отклонено |
-| Elena Novak | 180 строк кода + 90 строк доков | 76.50 | субъективная категория |
-| Anna Kowalski | 40 + 18 записей данных | 58.00 | из второй партии отсеяны 5 дублей, 3 контаминации, 4 записи с ПД |
-| Spam Bot | 200 точных дубликатов | 0.00 | сибил-дамп обнулён дедупликацией |
+| Sofia Marin | 3 confirmed defects in the eval set | 750.00 | 4th defect unconfirmed — not paid |
+| Ivan Petrov | 48 GPU-hours at 0.92 utilization | 529.92 | second proof at utilization 1.4 rejected |
+| Dmitri Volkov | fine-tuning, delta +0.021 | 84.00 | "improvement" not measured on held-out — rejected |
+| Elena Novak | 180 lines of code + 90 lines of docs | 76.50 | subjective category |
+| Anna Kowalski | 40 + 18 data records | 58.00 | 5 duplicates, 3 contaminations, 4 PII records filtered from the second batch |
+| Spam Bot | 200 exact duplicates | 0.00 | sybil dump zeroed by deduplication |
 
-**Итог: 1 498.42 points, 10 записей, цепочка цела, пересчёт из git даёт тот же результат.**
+**Total: 1,498.42 points, 10 entries, chain intact, recomputation from git produces the same result.**
 
 ---
 
-## Архитектура
+## Architecture
 
-| Модуль | Ответственность |
+| Module | Responsibility |
 |---|---|
-| `ledger/collectors.py` | Читает git-историю, классифицирует файлы по путям, извлекает payload. Trailer `Contribution-Type:` в сообщении коммита переопределяет классификацию |
-| `ledger/validators.py` | Автоматические проверки: дедуп, контаминация, PII, схема, held-out-хеш набора, версия harness, физическая осмысленность compute-proof |
-| `ledger/scoring.py` | Формулы, разделение бюджета на измеримую и субъективную части, масштабирование под бюджет, кап проекта |
-| `ledger/store.py` | Append-only хранилище с хеш-цепочкой, проверка целостности, агрегаты |
-| `ledger/snapshot.py` | Ежемесячный снимок: доли, итоги, хеш конфигурации |
-| `ledger/anchor.py` | Фиксация корня снимка (dry-run по умолчанию) |
-| `ledger/report.py` | HTML-отчёт без внешних зависимостей |
-| `ledger/selftest.py` | Проверка гарантий — экономических и криптографических |
-| `ledger/cli.py` | Командная строка |
+| `ledger/collectors.py` | Reads git history, classifies files by path, extracts payload. A `Contribution-Type:` trailer in the commit message overrides classification |
+| `ledger/validators.py` | Automated checks: deduplication, contamination, PII, schema, held-out set hash, harness version, physical plausibility of compute proofs |
+| `ledger/scoring.py` | Formulas, splitting the budget into measurable and subjective parts, scaling to budget, project cap |
+| `ledger/store.py` | Append-only store with hash chain, integrity check, aggregates |
+| `ledger/snapshot.py` | Monthly snapshot: shares, totals, configuration hash |
+| `ledger/anchor.py` | Fixes the snapshot root (dry-run by default) |
+| `ledger/report.py` | HTML report with no external dependencies |
+| `ledger/selftest.py` | Verifies the guarantees — economic and cryptographic |
+| `ledger/cli.py` | Command line |
 
-### Формат записи
+### Entry format
 
 ```json
 {"seq":0,"ts":"2026-08-05T10:00:00+00:00","kind":"contribution",
  "data":{...,"points":63.0,"metrics":{...}},"prev":"000…0","hash":"9f2c…"}
 ```
 
-`hash` считается от канонического JSON полей `seq, ts, kind, data, prev`. Правка любой записи ломает все последующие — проверяется сразу.
+`hash` is computed over the canonical JSON of `seq, ts, kind, data, prev`. Editing any entry breaks every subsequent one — checked immediately.
 
 ---
 
-## Правила начисления
+## Scoring rules
 
-| Тип вклада | Формула | Проверка перед начислением |
+| Contribution type | Formula | Checks before scoring |
 |---|---|---|
-| Данные | `принято × k_data × новизна` | дедуп, контаминация held-out, PII, схема |
-| Модель | `max(0, дельта) × k_model` | `dataset_hash` совпадает с held-out, версия harness |
-| Проверка | `подтверждённые дефекты × k_eval` | требуется `confirmed: true` |
-| Compute | `GPU-часы × k_compute × утилизация` | утилизация в (0, 1], есть `result_hash`, лимит на proof |
-| Код / доки | `добавлено строк × k_code / k_docs` | **ограничены 15% бюджета цикла** |
+| Data | `accepted × k_data × novelty` | dedup, held-out contamination, PII, schema |
+| Model | `max(0, delta) × k_model` | `dataset_hash` matches held-out, harness version |
+| Evaluation | `confirmed defects × k_eval` | requires `confirmed: true` |
+| Compute | `GPU-hours × k_compute × utilization` | utilization in (0, 1], `result_hash` present, proof limit |
+| Code / docs | `lines added × k_code / k_docs` | **capped at 15% of the cycle budget** |
 
-**Экономика:** бюджет цикла затухает на 15% каждые 6 циклов, общий кап зафиксирован в конфиге до первого начисления. Если вкладов больше, чем вмещает бюджет, начисления масштабируются пропорционально — но субъективная часть всегда ограничена своей долей.
+**Economics:** the cycle budget decays 15% every 6 cycles; the overall cap is fixed in the config before the first scoring run. If contributions exceed what the budget can hold, payouts scale proportionally — but the subjective part is always confined to its own share.
 
-Все коэффициенты — в `config.json`. Значения в демо **условные** и требуют калибровки под реальную нишу: сейчас, например, находка дефекта в eval-сете весит больше, чем 48 GPU-часов, и это нужно осознанно подтвердить или изменить.
+All coefficients live in `config.json`. Demo values are **placeholders** and need calibration against a real domain: right now, finding a defect in the eval set outweighs 48 GPU-hours, and that needs to be consciously confirmed or changed.
 
 ---
 
-## Гарантии (проверяются командой `selftest`)
+## Guarantees (verified by `selftest`)
 
 ```
-✅ Дубликаты не оплачиваются              ✅ Бюджет цикла не превышается
-✅ Повторная отправка не оплачивается     ✅ Субъективный вклад ограничен долей
-✅ Контаминация тестового сета блокируется ✅ Измеримое получает основную долю
-✅ Персональные данные отсекаются         ✅ Эмиссия затухает со временем
-✅ «Улучшение» не на held-out отклоняется  ✅ Целая цепочка проходит проверку
-✅ Невозможный compute-proof отклоняется  ✅ Правка задним числом обнаруживается
-✅ Отрицательная дельта не оплачивается   ✅ Удаление записи обнаруживается
-✅ Начисление детерминировано             ✅ Кап проекта ограничивает начисление
+✅ Duplicates are not paid                    ✅ Cycle budget is never exceeded
+✅ Resubmission is not paid                   ✅ Subjective contribution is capped by share
+✅ Test set contamination is blocked          ✅ Measurable work takes the larger share
+✅ Personal data is filtered out              ✅ Emission decays over time
+✅ "Improvement" off the held-out is rejected ✅ Whole chain passes verification
+✅ Impossible compute proof is rejected       ✅ Retroactive editing is detected
+✅ Negative delta is not paid                 ✅ Entry deletion is detected
+✅ Scoring is deterministic                   ✅ Project cap limits issuance
 ```
 
 ---
 
-## Что намеренно не сделано в MVP
+## Deliberately not done in the MVP
 
-Честный список, чтобы не принимать заглушку за готовую систему:
+An honest list, so a stub is not mistaken for a finished system:
 
-| Не сделано | Почему | Что нужно |
+| Not done | Why | What is needed |
 |---|---|---|
-| Реальная отправка якоря | Нет ключей и бюджета | Клиент Arweave или контракт на Base; интерфейс уже готов (`--publish`) |
-| Процедура споров | Требует ролей и уведомлений | Issue-шаблон + запись `adjustment` в леджере |
-| Подписи коммитов | Демо-репозиторий без GPG | Проверять `git verify-commit` в коллекторе |
-| Мульти-репозитории | Один проект — один реестр | Конфиг со списком репозиториев |
-| Экспорт выплат | Нет юрлица и выручки | После Фазы 3: выгрузка в формате для бухгалтерии + KYC |
-| Веб-интерфейс | Не узкое место | Читать `snapshots/*.json`, отчёт уже генерируется |
+| Real anchor publication | No credentials, no budget | An RFC 3161 timestamp authority or a transparency log such as Sigstore Rekor; the interface is ready (`--publish`) |
+| Dispute procedure | Requires roles and notifications | Issue template + an `adjustment` entry in the ledger |
+| Signed commits | Demo repository has no GPG | Check `git verify-commit` in the collector |
+| Multiple repositories | One project, one ledger | Config with a list of repositories |
+| Payout export | No legal entity, no revenue | After Phase 3: export in accounting format + KYC |
+| Web interface | Not the bottleneck | Read `snapshots/*.json`; the report is already generated |
 
 ---
 
-## Дальше
+## Next
 
-В порядке важности:
+In order of importance:
 
-1. **Подписанные коммиты** — иначе атрибуция вклада держится на поле author, которое подделывается одной строкой.
-2. **Реальный якорь** — Arweave (раз и навсегда) или Base (ежедневный батч-хеш).
-3. **Процедура споров** — 14 дней на оспаривание, решение публикуется записью в леджер.
-4. **Калибровка весов** под выбранную нишу: сейчас это заглушки.
-5. **Подтверждение compute на прогоне** — детерминированный ре-ран, а не trust в `result_hash`.
+1. **Signed commits** — otherwise attribution rests on the author field, which is forged with one line.
+2. **Real anchoring** — an RFC 3161 timestamp authority (once, permanently) or a transparency log such as Sigstore Rekor (daily batch hash).
+3. **Dispute procedure** — 14 days to contest; the decision is published as a ledger entry.
+4. **Weight calibration** against the chosen domain: currently placeholders.
+5. **Compute proof by re-run** — deterministic re-execution rather than trust in `result_hash`.
 
 ---
 
-## Напоминание, которое стоит держать перед глазами
+## The reminder worth keeping in view
 
-> Points не имеют денежной стоимости, не передаются и не дают права на выплаты.
-> Механизм вознаграждения вводится отдельно — вместе с юридической структурой и выручкой.
+> Points have no monetary value, are not transferable, and do not entitle anyone to payment.
+> A reward mechanism will be introduced separately — together with a legal structure and revenue.
 
-Это не формальность, а то, что удерживает всю конструкцию вне режима регулирования ценных бумаг. См. `legal-structure-points-to-revenue.md` и `points-policy-and-terms.md`.
+This is not a formality. It is what keeps the whole construction outside securities regulation.
+
+---
+
+## License
+
+MIT — see [`LICENSE`](LICENSE).

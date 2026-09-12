@@ -62,7 +62,7 @@
     ]
   },
   "anchor": {
-    "target": "arweave",
+    "target": "rfc3161",
     "dry_run": true
   }
 }

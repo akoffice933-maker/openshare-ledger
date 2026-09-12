@@ -33,7 +33,7 @@ def build_payload(cfg, snap: dict) -> dict:
 
 def write_anchor(cfg, snap: dict, target: str | None = None, dry: bool = True) -> dict:
     payload = build_payload(cfg, snap)
-    tgt = target or cfg.raw.get("anchor", {}).get("target", "arweave")
+    tgt = target or cfg.raw.get("anchor", {}).get("target", "rfc3161")
     record = {
         "ts": payload["ts"],
         "cycle": snap["cycle"],
@@ -44,5 +44,5 @@ def write_anchor(cfg, snap: dict, target: str | None = None, dry: bool = True) -
     with open(anchor_path(cfg), "a", encoding="utf-8") as fh:
         fh.write(json.dumps(record, sort_keys=True, separators=(",", ":")
                             ) + "\n")
-    record["tx_hint"] = (f"{tgt}:<txid>" if not dry else "<не отправлено, dry-run>")
+    record["tx_hint"] = (f"{tgt}:<token>" if not dry else "<не отправлено, dry-run>")
     return record
