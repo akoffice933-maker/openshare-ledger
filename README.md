@@ -1,12 +1,17 @@
 # Contribution Ledger — MVP
 
-**Реестр вкладов для community-owned AI проекта.** Git — источник истины, начисление — только за измеримый вклад, история — append-only с хеш-цепочкой.
+> **EN** — Open infrastructure for verifiable contribution attribution in community-trained AI.
+> Git is the source of truth. Every contribution is scored against measurable work and recorded in an append-only SHA-256 hash chain that is public and replayable from git. No external infrastructure, no trust required: anyone can recompute the chain and verify the result.
+>
+> Ledger MVP is built and self-tested: 10 entries, 1,498.42 points, chain verified, 16/16 guarantees confirmed.
+
+**Реестр вкладов для community-owned AI проекта.** Git — источник истины, начисление — только за измеримый вклад, история — append-only с хеш-цепочкой. Git — источник истины, начисление — только за измеримый вклад, история — append-only с хеш-цепочкой.
 
 ```
 git-история → валидаторы → начисление → append-only леджер → снимок + якорь
 ```
 
-Никаких токенов, никаких кошельков, никаких смарт-контрактов. Блокчейн в этой схеме нужен ровно для одного: чтобы **нельзя было переписать историю задним числом**.
+Хеш-цепочка нужна ровно для одного: чтобы **нельзя было переписать историю вкладов задним числом**. Никакой внешней инфраструктуры — цепочка воспроизводится из git.
 
 ---
 
