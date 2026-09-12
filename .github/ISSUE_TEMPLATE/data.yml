@@ -1,0 +1,54 @@
+name: Данные
+description: Примеры документов и правильных ответов к ним
+title: "[data] "
+labels: ["contribution: data", "good first issue"]
+body:
+  - type: markdown
+    value: |
+      Спасибо! Данные — самый нужный вклад, и для него не нужно уметь программировать.
+
+      **Пожалуйста, не вставляйте сами данные прямо в эту форму.** Отправьте их
+      отдельным pull request с файлом в каталоге `data/`, а здесь опишите, что внутри.
+
+  - type: input
+    id: source
+    attributes:
+      label: Откуда данные
+      description: Ссылка на источник. Обязательно.
+      placeholder: https://zakupki.gov.ru/... (открытая закупка №123)
+    validations:
+      required: true
+
+  - type: input
+    id: license
+    attributes:
+      label: Лицензия или право на использование
+      placeholder: CC BY 4.0 / собственные данные / открытая публикация
+    validations:
+      required: true
+
+  - type: input
+    id: count
+    attributes:
+      label: Сколько записей
+      placeholder: 40
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Подтверждения
+      options:
+        - label: В данных нет персональных данных (имён, телефонов, адресов, номеров документов)
+          required: true
+        - label: Это не копии уже принятых записей
+          required: true
+        - label: Я имею право передать эти данные проекту
+          required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Что ещё важно знать
+      description: Особенности разметки, спорные места, вопросы.

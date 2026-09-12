@@ -1,0 +1,43 @@
+name: Ошибка в системе оценки
+description: Нашли дефект в том, как проект измеряет качество
+title: "[eval] "
+labels: ["contribution: eval", "priority: high"]
+body:
+  - type: markdown
+    value: |
+      Одна найденная ошибка в системе оценки важнее сотни новых примеров данных:
+      пока проверка врёт, мы не знаем, стала модель лучше или хуже.
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Что за дефект
+      options:
+        - В контрольном наборе несколько правильных ответов
+        - В контрольном наборе неверный или спорный ответ
+        - Дубликаты внутри контрольного набора
+        - Метрика не видит правильный ответ
+        - Ошибка кодировки или разметки
+        - Другое
+    validations:
+      required: true
+
+  - type: textarea
+    id: howto
+    attributes:
+      label: Как воспроизвести
+      description: Конкретные шаги или идентификатор примера.
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Почему это важно
+      description: Как дефект влияет на измерение качества.
+
+  - type: textarea
+    id: fix
+    attributes:
+      label: Предлагаемое исправление
+      description: Если есть предложение — напишите. Если нет — оставьте пустым.

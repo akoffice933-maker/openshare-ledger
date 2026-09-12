@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Как участвовать в проекте
+    url: https://github.com/openshare-ai/openshare-ai/blob/main/PARTICIPATE.md
+    about: Простым языком: кто может помочь, что за это будет и с чего начать.
+  - name: Вопрос по проекту
+    url: https://github.com/openshare-ai/openshare-ai/discussions
+    about: Задайте вопрос в Discussions — так ответ увидят все.

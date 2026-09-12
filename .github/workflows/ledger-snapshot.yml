@@ -1,0 +1,39 @@
+name: ledger-snapshot
+
+# Ежемесячный снимок реестра: 1-е число, 03:00 UTC.
+# Снимок коммитится в репозиторий, его хеш уходит в якорь.
+on:
+  schedule:
+    - cron: '0 3 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Пересчёт и снимок
+        env:
+          CYCLE: ${{ github.event.inputs.cycle || '' }}
+        run: |
+          CYCLE="${CYCLE:-$(date +%Y-%m)}"
+          python3 -m ledger score --repo . --cycle "$CYCLE"
+          python3 -m ledger report --cycle "$CYCLE" --out docs/registry.html
+
+      - name: Коммит снимка
+        run: |
+          git config user.name "ledger-bot"
+          git config user.email "ledger-bot@users.noreply.github.com"
+          git add state report.html docs/registry.html
+          git diff --cached --quiet || git commit -m "ledger: снимок $(date +%Y-%m)"
+          git push

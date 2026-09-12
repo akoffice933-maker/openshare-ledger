@@ -1,0 +1,68 @@
+{
+  "project": "OpenShare AI",
+  "project_start": "2026-08",
+  "cycle": "monthly",
+  "paths": {
+    "state_dir": "state",
+    "private_dir": "private",
+    "heldout_hashes": "private/golden_hashes.txt"
+  },
+  "git": {
+    "data_paths": [
+      "data/"
+    ],
+    "model_paths": [
+      "model/"
+    ],
+    "eval_paths": [
+      "evals/results/"
+    ],
+    "compute_paths": [
+      "compute/"
+    ],
+    "subjective_paths": [
+      "src/",
+      "docs/",
+      "README.md",
+      "CONTRIBUTING.md"
+    ]
+  },
+  "weights": {
+    "k_data": 1.0,
+    "k_model": 4000.0,
+    "k_eval": 250.0,
+    "k_compute": 12.0,
+    "k_code": 0.35,
+    "k_docs": 0.15
+  },
+  "emission": {
+    "cycle_budget_base": 100000,
+    "decay": 0.85,
+    "decay_every": 6,
+    "project_cap": 5000000
+  },
+  "subjective_share": 0.15,
+  "confirm_days": 30,
+  "validation": {
+    "data_required_fields": [
+      "prompt",
+      "completion"
+    ],
+    "min_harness_version": "0.1.0",
+    "max_compute_hours_per_proof": 1000,
+    "heldout_dataset_hash": "275746e2d452634b089383c12e3b137c785b9fb03cd4e35778f01ad6f0190576",
+    "pii_key_markers": [
+      "name",
+      "phone",
+      "email",
+      "address",
+      "passport",
+      "iban",
+      "ssn"
+    ]
+  },
+  "anchor": {
+    "target": "arweave",
+    "dry_run": true
+  }
+}

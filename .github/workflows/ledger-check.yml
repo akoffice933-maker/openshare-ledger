@@ -1,0 +1,72 @@
+name: ledger-check
+
+# Проверяем каждый pull request ДО того, как человек ждёт ревью.
+# Решение принимает программа, а не настроение мейнтейнера.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # нужна вся история, а не один коммит
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Проверка вклада
+        run: |
+          python3 -m ledger check \
+            --repo . \
+            --range "${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" \
+            --json result.json
+
+      - name: Комментарий с вердиктом
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const r = JSON.parse(fs.readFileSync('result.json', 'utf8'));
+            const icon = v => v === 'принят' ? '✅' : '❌';
+            let rows = r.rows.map(x => {
+              let s = `| ${icon(x.verdict)} | \`${x.kind}\` | \`${x.path}\` | ${x.author} |`;
+              return s;
+            }).join('\n');
+            if (!r.rows.length) rows = '| — | — | — | — |';
+            const body = [
+              '## Проверка вклада',
+              '',
+              `Проверено: **${r.checked}**, отклонено: **${r.rejected}**`,
+              '',
+              '| | Тип | Файл | Автор |',
+              '|---|---|---|---|',
+              rows,
+              '',
+              r.rejected > 0
+                ? '> Отклонённые вклады можно исправить и отправить заново — причина указана в логе ниже.'
+                : '> Все вклады прошли автоматическую проверку.',
+              '',
+              '<details><summary>Подробности и причины отклонений</summary>',
+              '',
+              '```json',
+              JSON.stringify(r.rows, null, 2),
+              '```',
+              '',
+              '</details>',
+              '',
+              '_Points не имеют денежной стоимости, не передаются и не дают права на выплаты._'
+            ].join('\n');
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });

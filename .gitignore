@@ -1,0 +1,18 @@
+# Приватный контрольный набор: в репозитории только его хеши,
+# сами примеры не публикуются никогда.
+private/golden.jsonl
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Локальное
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Служебные результаты CI
+result.json
