@@ -16,3 +16,8 @@ venv/
 
 # Служебные результаты CI
 result.json
+
+# Генерируемые артефакты: восстанавливаются run_demo.sh
+state/
+demo/repo/
+report.html
