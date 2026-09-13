@@ -1,0 +1,78 @@
+{
+  "project": "OpenShare AI",
+  "cycle": "2026-09",
+  "generated_at": "2026-09-13T07:19:28.040276+00:00",
+  "config_hash": "1647917e3e5eb3e572c75c16ed32ceaad50f7ff515b1839e633c3cd827457a44",
+  "entries": 10,
+  "contributions": 10,
+  "head": "9d0ca26956ce3d246b373759b2d42c433c5a3c7ca2638f5d74a5929579ffb73e",
+  "root": "b5329b86877713956cb96caa2e7e382af2879cc0c0808e516f3405ae2dbadbdf",
+  "total_points": 1498.42,
+  "cycle_points": 781.5,
+  "cycle_budget": 100000.0,
+  "accounts": [
+    {
+      "name": "Sofia Marin",
+      "email": "sofia@example.com",
+      "points": 750.0,
+      "contributions": 1,
+      "accepted": 1,
+      "by_kind": {
+        "eval": 750.0
+      }
+    },
+    {
+      "name": "Ivan Petrov",
+      "email": "ivan@example.io",
+      "points": 529.92,
+      "contributions": 2,
+      "accepted": 1,
+      "by_kind": {
+        "compute": 529.92
+      }
+    },
+    {
+      "name": "Dmitri Volkov",
+      "email": "dmitri@example.net",
+      "points": 84.0,
+      "contributions": 2,
+      "accepted": 1,
+      "by_kind": {
+        "model": 84.0
+      }
+    },
+    {
+      "name": "Elena Novak",
+      "email": "elena@example.dev",
+      "points": 76.5,
+      "contributions": 2,
+      "accepted": 2,
+      "by_kind": {
+        "code": 63.0,
+        "docs": 13.5
+      }
+    },
+    {
+      "name": "Anna Kowalski",
+      "email": "anna@example.org",
+      "points": 58.0,
+      "contributions": 2,
+      "accepted": 2,
+      "by_kind": {
+        "data": 58.0
+      }
+    },
+    {
+      "name": "Spam Bot",
+      "email": "spam@example.ru",
+      "points": 0.0,
+      "contributions": 1,
+      "accepted": 0,
+      "by_kind": {
+        "data": 0.0
+      }
+    }
+  ],
+  "contributors": 6,
+  "snapshot_hash": "84a4d557a09ebd1bbe569b3ecd0f7a9953832050087bfb49991553557732b602"
+}
