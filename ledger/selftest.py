@@ -21,11 +21,21 @@ from .validators import validate, rhash
 
 OK, FAIL = "✅", "❌"
 _results: list[tuple[bool, str]] = []
+_skipped: list[str] = []
 
 
 def check(name: str, cond: bool, detail: str = "") -> None:
     _results.append((bool(cond), name + (f" — {detail}" if detail else "")))
     print(f"  {OK if cond else FAIL} {name}" + (f"  ({detail})" if detail else ""))
+
+def skip(name: str, why: str) -> None:
+    """Гарантия не может быть проверена в этом чекауте.
+
+    Пропуск обязан быть виден в итоге: «15/15» при одной непроверенной
+    гарантии — это тот же тихий успех, что и пропуск контаминации.
+    """
+    _skipped.append(f"{name} ({why})")
+    print(f"  ⏭  {name} — не проверено ({why})")
 
 
 def _contrib(kind, payload, who="Tester", email="t@example.org",
@@ -38,10 +48,14 @@ def _contrib(kind, payload, who="Tester", email="t@example.org",
 def run(cfg: Config) -> int:
     print("Гарантии реестра:\n")
     heldout = set()
-    for line in open(os.path.join(cfg.root, cfg.raw["paths"]["heldout_hashes"]),
-                     encoding="utf-8"):
-        if line.strip():
-            heldout.add(line.strip())
+    try:
+        with open(os.path.join(cfg.root, cfg.raw["paths"]["heldout_hashes"]),
+                  encoding="utf-8") as fh:
+            for line in fh:
+                if line.strip():
+                    heldout.add(line.strip())
+    except FileNotFoundError:
+        pass  # приватный сет не публикуется — см. пропуск контаминации
 
     clean = [{"prompt": f"p{i}", "completion": f"c{i}"} for i in range(10)]
 
@@ -68,10 +82,19 @@ def run(cfg: Config) -> int:
                   v.metrics["contaminated"] >= 1 and v.ok,
                   f"отсеяно {v.metrics['contaminated']}")
         except FileNotFoundError:
-            print("  ⏭  Контаминация тестового сета — пропущено "
-                  "(приватный файл не публикуется в репозитории)")
+            skip("Контаминация тестового сета блокируется",
+                 "приватный golden.jsonl не публикуется")
     else:
-        check("Контаминация тестового сета блокируется", False, "нет held-out сета")
+        skip("Контаминация тестового сета блокируется",
+             "приватный held-out недоступен в этом чекауте")
+
+    # 3b. Регрессия: недоступный held-out обязан ОТКЛОНИТЬ вклад, а не
+    # пропустить его. Раньше отсутствие файла давало пустое множество,
+    # `if h in heldout` не срабатывал, и заражённые данные проходили.
+    v = validate(_contrib("data", {"records": clean}), cfg, set(), None)
+    check("Недоступный held-out отклоняет вклад, а не пропускает его",
+          (not v.ok) and any("недоступен" in r for r in v.reasons),
+          v.reasons[0] if v.reasons else "вклад принят — дыра открыта")
 
     # 4. Персональные данные
     pii = {"prompt": "Контакт", "completion": "Пишите на ivan@example.ru или +31 6 12345678"}
@@ -161,5 +184,10 @@ def run(cfg: Config) -> int:
           f"{sum(e['points'] for e in entries_c):.2f} при остатке 10")
 
     bad_n = sum(1 for ok_, _ in _results if not ok_)
-    print(f"\nИтого: {len(_results) - bad_n}/{len(_results)} гарантий подтверждено")
+    ok_n = len(_results) - bad_n
+    print(f"\nИтого: {ok_n}/{len(_results)} гарантий подтверждено")
+    if _skipped:
+        print(f"\u26a0  Не проверено: {len(_skipped)}")
+        for x in _skipped:
+            print(f"     - {x}")
     return 1 if bad_n else 0
