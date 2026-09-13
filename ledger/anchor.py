@@ -263,10 +263,16 @@ def anchor_path(cfg) -> str:
     return p
 
 
-def token_path(cfg, cycle: str) -> str:
+def token_path(cfg, cycle: str, root: str) -> str:
+    """Имя токена уникально для каждого корня.
+
+    Один цикл можно якорить несколько раз — леджер растёт, корень
+    меняется. Если имя зависит только от цикла, второй якорь молча
+    перезапишет токен первого, и тот начнёт не проходить проверку.
+    """
     d = os.path.join(cfg.path("state_dir"), "anchors")
     os.makedirs(d, exist_ok=True)
-    return os.path.join(d, f"{cycle}.tsr")
+    return os.path.join(d, f"{cycle}.{root[:12]}.tsr")
 
 
 def build_payload(cfg, snap: dict) -> dict:
@@ -314,7 +320,7 @@ def write_anchor(cfg, snap: dict, target: str | None = None,
             f"TSA {url} вернул токен, не подтверждающий корень снимка: "
             f"{check.get('error')}")
 
-    tp = token_path(cfg, snap["cycle"])
+    tp = token_path(cfg, snap["cycle"], snap["root"])
     with open(tp, "wb") as fh:
         fh.write(token)
 
