@@ -29,8 +29,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Цепочка реестра (неизменность опубликованных записей)
-        run: python3 -m ledger verify
+      # --anchors проверяет подпись TSA у сохранённых токенов.
+      # Проверка офлайн: CA-сертификат лежит в репозитории.
+      - name: Цепочка реестра и якоря (неизменность опубликованных записей)
+        run: python3 -m ledger verify --anchors
 
       - name: Гарантии реестра
         run: python3 -m ledger selftest

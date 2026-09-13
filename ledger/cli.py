@@ -179,6 +179,10 @@ def cmd_verify(a) -> int:
     if not ok:
         return 1
 
+    if a.anchors:
+        if _verify_anchors(cfg):
+            return 1
+
     if a.recompute:
         print("[пересчёт] воспроизводим леджер из git-истории…")
         with tempfile.TemporaryDirectory() as td:
@@ -195,6 +199,53 @@ def cmd_verify(a) -> int:
                         print(f"   {k}: в леджере {cur.get(k, 0)} ≠ пересчитано {new.get(k, 0)}")
                 return 1
     return 0
+
+
+def _verify_anchors(cfg) -> int:
+    """Сверяет сохранённые токены TSA с корнями снимков.
+
+    dry-run записи не считаются отправленными: у них нет токена,
+    и молча пропустить их — значит выдать отсутствие якоря за якорь.
+    """
+    log = anchormod.anchor_path(cfg)
+    if not os.path.exists(log):
+        print("[якоря] anchors.log отсутствует")
+        return 0
+
+    submitted = 0
+    for line in open(log, encoding="utf-8"):
+        line = line.strip()
+        if not line:
+            continue
+        rec = json.loads(line)
+        if rec.get("status") != "submitted":
+            continue
+        submitted += 1
+
+        tp = os.path.join(cfg.root, rec.get("token", ""))
+        if not os.path.exists(tp):
+            print(f"[якоря] ❌ {rec['cycle']}: токен {rec.get('token')} отсутствует")
+            return 1
+
+        with open(tp, "rb") as fh:
+            token = fh.read()
+        res = anchormod.verify_token(token, rec["payload"]["root"])
+        if not res.get("ok"):
+            print(f"[якоря] ❌ {rec['cycle']}: {res.get('error')}")
+            return 1
+        if res.get("method") == "openssl":
+            tail = f"подпись TSA проверена, время {res.get('gen_time')}"
+        else:
+            tail = ("⚠ только структура: "
+                    f"{res.get('warning') or 'подпись не проверена'}")
+        print(f"[якоря] ✅ {rec['cycle']}: корень "
+              f"{res['hash_in_token'][:12]}… — {tail}")
+
+    if submitted == 0:
+        print("[якоря] отправленных якорей нет "
+              "(dry-run якорём не считается)")
+    return 0
+
 
 
 def _last_cycle(ledger: Ledger) -> str:
@@ -309,6 +360,8 @@ def main(argv=None) -> int:
     v.add_argument("--repo", default=None)
     v.add_argument("--cycle", default=None)
     v.add_argument("--recompute", action="store_true")
+    v.add_argument("--anchors", action="store_true",
+                   help="проверить токены TSA из anchors.log")
     v.set_defaults(f=cmd_verify)
 
     sn = sub.add_parser("snapshot", help="сформировать снимок")
