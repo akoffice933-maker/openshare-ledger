@@ -29,13 +29,31 @@ def _ledger(cfg: Config) -> Ledger:
     return Ledger(p)
 
 
-def _heldout(cfg: Config) -> set[str]:
+def _heldout(cfg: Config):
+    """Хеши приватного held-out сета.
+
+    None  — сет зарегистрирован в config.json, но файла нет (чистый
+            клон, CI). Контаминацию проверить невозможно: validate_data
+            обязан ОТКЛОНИТЬ вклад, а не пропустить его молча.
+    set() — сет не зарегистрирован вовсе. Проверка отключена, но это
+            напечатано явно. Ранее оба случая молча возвращали пустое
+            множество, и заражённые данные проходили валидацию.
+    """
+    path = os.path.join(cfg.root, cfg.raw["paths"]["heldout_hashes"])
     try:
-        with open(os.path.join(cfg.root, cfg.raw["paths"]["heldout_hashes"]),
-                  encoding="utf-8") as fh:
-            return {ln.strip() for ln in fh if ln.strip()}
+        with open(path, encoding="utf-8") as fh:
+            hashes = {ln.strip() for ln in fh if ln.strip()}
     except FileNotFoundError:
+        if cfg.val("heldout_dataset_hash", ""):
+            print(f"[held-out] ⚠ {path} недоступен: "
+                  "контаминацию проверить нельзя, data-вклады будут отклонены")
+            return None
+        print("[held-out] сет не зарегистрирован: проверка контаминации отключена")
         return set()
+
+    if not hashes:
+        print(f"[held-out] ⚠ {path} пуст: проверка контаминации не работает")
+    return hashes
 
 
 def _anchors(cfg: Config) -> list[dict]:

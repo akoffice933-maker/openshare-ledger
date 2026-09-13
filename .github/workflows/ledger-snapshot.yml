@@ -2,6 +2,11 @@ name: ledger-snapshot
 
 # Ежемесячный снимок реестра: 1-е число, 03:00 UTC.
 # Снимок коммитится в репозиторий, его хеш уходит в якорь.
+#
+# Это единственное место, где проверяется воспроизводимость: сначала
+# score доводит леджер до текущей истории, затем verify --recompute
+# сверяет начисления с пересчётом из git. В ledger-verify.yml порядок
+# был бы обратным и гарантированно давал ложное расхождение.
 on:
   schedule:
     - cron: '0 3 1 * *'
@@ -22,13 +27,28 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Пересчёт и снимок
+      - name: Начисление по реальной истории репозитория
         env:
           CYCLE: ${{ github.event.inputs.cycle || '' }}
         run: |
           CYCLE="${CYCLE:-$(date +%Y-%m)}"
           python3 -m ledger score --repo . --cycle "$CYCLE"
+
+      # Только после score: леджер актуален, пересчёт должен совпасть.
+      - name: Воспроизводимость
+        env:
+          CYCLE: ${{ github.event.inputs.cycle || '' }}
+        run: |
+          CYCLE="${CYCLE:-$(date +%Y-%m)}"
+          python3 -m ledger verify --repo . --recompute --cycle "$CYCLE"
+
+      - name: Отчёт
+        env:
+          CYCLE: ${{ github.event.inputs.cycle || '' }}
+        run: |
+          CYCLE="${CYCLE:-$(date +%Y-%m)}"
           python3 -m ledger report --cycle "$CYCLE" --out docs/registry.html
+          python3 -m ledger snapshot --cycle "$CYCLE"
 
       - name: Коммит снимка
         run: |

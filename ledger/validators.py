@@ -47,6 +47,13 @@ def validate_data(records: list[dict], cfg, accepted: set[str], heldout: set[str
     """Данные: дедуп → контаминация → PII → схема."""
     m = {"submitted": len(records), "accepted": 0, "new": 0,
          "duplicates": 0, "contaminated": 0, "pii_blocked": 0, "invalid": 0}
+    if heldout is None:
+        # Сет зарегистрирован, но недоступен (CI, чистый клон).
+        # Пропустить вклад здесь — значит принять заражённые данные.
+        return Verdict(False, "data",
+                       {"submitted": len(records)},
+                       ["held-out сет недоступен: контаминацию проверить "
+                        "невозможно, вклад отклонён"])
     required = cfg.val("data_required_fields", []) or []
     markers = [s.lower() for s in (cfg.val("pii_key_markers") or [])]
     newly: list[str] = []
