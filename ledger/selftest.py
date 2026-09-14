@@ -17,7 +17,7 @@ from .collectors import Contribution
 from .config import Config, cycle_budget
 from .scoring import score_cycle
 from .store import Ledger
-from .validators import validate, rhash
+from .validators import trust_level, validate, rhash
 
 OK, FAIL = "✅", "❌"
 _results: list[tuple[bool, str]] = []
@@ -182,6 +182,38 @@ def run(cfg: Config) -> int:
     check("Кап проекта ограничивает начисление",
           sum(e["points"] for e in entries_c) <= 10.01,
           f"{sum(e['points'] for e in entries_c):.2f} при остатке 10")
+
+    # 13. Подпись коммита.
+    # Атрибуция держится на полях author, которые подделываются одной
+    # строкой. Гарантия в том, что подделать подпись так же нельзя:
+    # уровень доверяется git, а не полю в коммите.
+    def _signed(sig: str, key: str = ""):
+        from .collectors import Contribution
+        return Contribution(id="s1", kind="code", contributor="T",
+                            email="t@example.org", ts="2026-09-01T00:00:00+00:00",
+                            commit="c" * 40, subject="s", path="x",
+                            cycle="2026-09", payload={"added": 10, "deleted": 0},
+                            sig=sig, key=key)
+
+    check("Подписанный коммит отличается от неподписанного",
+          trust_level(_signed("G", "ABC123")) == "signed"
+          and trust_level(_signed("U", "ABC123")) == "signed"
+          and trust_level(_signed("N")) == "unsigned"
+          and trust_level(_signed("")) == "unsigned"
+          and trust_level(_signed("E")) == "unsigned",
+          "G/U → signed, N/E/пусто → unsigned")
+
+    check("Отозванный или истёкший ключ не считается подписью",
+          all(trust_level(_signed(s_)) == "invalid" for s_ in "BXYR"),
+          "B, X, Y, R → invalid")
+
+    # 14. Уровень доверия попадает в запись леджера, иначе зря считали.
+    b3 = [_contrib("code", {"added": 5, "deleted": 0}, path=f"w{i}", cid=f"w{i}")
+          for i in range(2)]
+    ent3, _ = score_cycle(b3, cfg, set(), heldout, 100000, 1e9)
+    check("Уровень доверия записан в леджер",
+          all(e.get("trust") in {"signed", "unsigned", "invalid"} for e in ent3),
+          ", ".join(sorted({e.get("trust") for e in ent3})))
 
     bad_n = sum(1 for ok_, _ in _results if not ok_)
     ok_n = len(_results) - bad_n

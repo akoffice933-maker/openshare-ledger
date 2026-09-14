@@ -72,9 +72,33 @@ Output: `state/entries.jsonl`, `state/snapshots/2026-09.json`, `state/anchors.lo
 | `ledger/store.py` | Append-only store with hash chain, integrity check, aggregates |
 | `ledger/snapshot.py` | Monthly snapshot: shares, totals, configuration hash |
 | `ledger/anchor.py` | RFC 3161: builds a TimeStampReq, sends it to a TSA, stores the token, verifies the signature |
+| `ledger/collectors.py` | Reads commit signature status (`%G?`) and key fingerprint (`%GK`) |
 | `ledger/report.py` | HTML report with no external dependencies |
 | `ledger/selftest.py` | Verifies the guarantees — economic and cryptographic |
 | `ledger/cli.py` | Command line |
+
+### Trust levels
+
+Attribution rests on the `author` field until a commit is signed — and that
+field is forged with one line:
+
+```bash
+git -c user.name="Someone Else" -c user.email="other@example.org" commit -m "..."
+```
+
+So every entry records how much the attribution is actually worth:
+
+| Level | Meaning | Source |
+|---|---|---|
+| `signed` | Commit carries a valid signature | `git` says `G` or `U` |
+| `unsigned` | No signature, or it cannot be checked | `N`, `E` |
+| `invalid` | Signature does not verify, or the key expired or was revoked | `B`, `X`, `Y`, `R` |
+
+The level comes from `git`, not from anything in the commit itself, so
+spoofing the author field does not change it. `signature.unsigned_factor`
+in `config.json` sets whether unsigned contributions are discounted; it is
+`1.0` today so that existing contributions are not zeroed before
+contributors have had a chance to start signing.
 
 ### Entry format
 
@@ -137,7 +161,7 @@ An honest list, so a stub is not mistaken for a finished system:
 
 In order of importance:
 
-1. **Signed commits** — otherwise attribution rests on the author field, which is forged with one line.
+1. ~~**Signed commits**~~ — **done**: every entry records a trust level from the git signature; `selftest` proves a spoofed author cannot be recorded as `signed`. Next step is moving `signature.unsigned_factor` below 1.0.
 2. ~~**Real anchoring**~~ — **done**: DigiCert TSA, `snapshot --anchor --publish`. Verified with `verify --anchors`; needs no file from this repository. Sigstore Rekor remains an option for inclusion proofs.
 3. **Dispute procedure** — 14 days to contest; the decision is published as a ledger entry.
 4. **Weight calibration** against the chosen domain: currently placeholders.

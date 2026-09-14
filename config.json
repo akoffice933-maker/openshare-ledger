@@ -65,5 +65,10 @@
     "target": "rfc3161",
     "dry_run": false,
     "url": "http://timestamp.digicert.com"
+  },
+  "signature": {
+    "unsigned_factor": 1.0,
+    "reject_invalid": false,
+    "_note": "unsigned_factor 1.0 = пока без скидки; поднять требования, когда контрибьюторы смогут подписывать"
   }
 }

@@ -176,3 +176,38 @@ def validate(c, cfg, accepted: set[str], heldout: set[str]) -> Verdict:
     if c.kind == "compute":
         return validate_compute(c.payload, cfg)
     return validate_subjective(c.payload, c.kind)
+
+
+# --- Подпись коммита: кто именно это сделал ------------------------
+#
+# Статусы git (%G?):
+#   G  подпись хорошая
+#   U  подпись хорошая, ключ не входит в web of trust
+#   X/Y/R  подпись хорошая, но ключ истёк или отозван
+#   B  подпись не сходится
+#   E  проверить невозможно (нет ключа)
+#   N  подписи нет
+#
+# Уровень "attested" (ключ привязан к подтверждённой личности) появится
+# вместе со слоем идентификации; пока его нет, его и не выдаём.
+
+GOOD_SIG = {"G", "U"}
+BAD_SIG = {"B", "X", "Y", "R"}
+
+
+def trust_level(c) -> str:
+    """Уровень доверия к атрибуции вклада."""
+    st = ((getattr(c, "sig", "") or "N").strip().upper() or "N")
+    if st in GOOD_SIG:
+        return "signed"
+    if st in BAD_SIG:
+        return "invalid"
+    return "unsigned"
+
+
+def signature_reason(level: str) -> str:
+    return {
+        "signed": "",
+        "unsigned": "коммит не подписан: автор указан словом, подлинность не подтверждена",
+        "invalid": "подпись недействительна: ключ отозван, истёк или подпись не сходится",
+    }.get(level, "неизвестный статус подписи")

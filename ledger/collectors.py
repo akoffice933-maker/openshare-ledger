@@ -33,6 +33,8 @@ class Contribution:
     payload: dict = field(default_factory=dict)
     trailers: dict = field(default_factory=dict)
     meta: dict = field(default_factory=dict)
+    sig: str = "N"            # статус подписи git (%G?)
+    key: str = ""             # отпечаток ключа (%GK), если подпись есть
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -107,7 +109,10 @@ def _load_data(text: str) -> list[dict]:
 def collect(repo: str, cfg, since: str | None = None,
             rng: str | None = None) -> list[Contribution]:
     """Собирает все события вклада из истории репозитория (детерминированно)."""
-    fmt = "%H%x1f%an%x1f%ae%x1f%aI%x1f%s%x1f%b%x1e"
+    # %G? — статус подписи (G/B/U/X/Y/R/E/N), %GK — отпечаток ключа.
+    # Без этого атрибуция держится на полях author, которые подделываются
+    # одной строкой: git -c user.name="..." commit
+    fmt = "%H%x1f%an%x1f%ae%x1f%aI%x1f%G?%x1f%GK%x1f%s%x1f%b%x1e"
     args = ["log", "--reverse", f"--pretty=format:{fmt}"]
     if since:
         args.append(f"--since={since}")
@@ -120,7 +125,10 @@ def collect(repo: str, cfg, since: str | None = None,
         block = block.strip("\n")
         if not block.strip():
             continue
-        sha, name, email, ts, subject, body = block.split("\x1f")
+        parts = block.split("\x1f")
+        if len(parts) != 8:
+            continue
+        sha, name, email, ts, sig_status, sig_key, subject, body = parts
         trailers = _trailers(body)
         stat = _numstat(repo, sha)
 
@@ -151,6 +159,8 @@ def collect(repo: str, cfg, since: str | None = None,
                 ts=ts, commit=sha, subject=subject, path=path, cycle=cycle,
                 payload=payload, trailers=trailers,
                 meta={"added": added, "deleted": deleted},
+                sig=(sig_status or "N").strip() or "N",
+                key=(sig_key or "").strip(),
             ))
 
     contribs.sort(key=lambda c: (c.ts, c.commit, c.path))

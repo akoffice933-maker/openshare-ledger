@@ -1,27 +1,27 @@
 {
   "project": "OpenShare AI",
   "cycle": "2026-09",
-  "generated_at": "2026-09-14T16:38:29.244771+00:00",
-  "config_hash": "2eaba0cc38e24e9edcc2b8abaa07221787f5b0b2d2e073deac4f8875593c41b3",
-  "entries": 6,
-  "contributions": 6,
-  "head": "3f5d6057a7ef6f2580875b7401a59707846a839bcbd8d030fd573b8c3c08affb",
-  "root": "d226d50e498607c9dfd9525dc12f29500db3c7d3e4939c0e14acc869311f4a90",
-  "total_points": 58.8,
-  "cycle_points": 58.8,
+  "generated_at": "2026-09-14T16:47:59.359837+00:00",
+  "config_hash": "cbfa24ae17331438ad948c5eec408fcb554514059ca3a816847b989ac986dddf",
+  "entries": 9,
+  "contributions": 9,
+  "head": "a8ada8421e99a3096fcdba2164d44f011b524fb602f092ed1b0676c3d4eb92bc",
+  "root": "e8897e6961ac97c58781b8f9c7088ada74ac461d956218784f758904c98622c6",
+  "total_points": 60.9,
+  "cycle_points": 60.9,
   "cycle_budget": 100000.0,
   "accounts": [
     {
       "name": "Anton Romanenko",
       "email": "dev@akoffice.local",
-      "points": 58.8,
-      "contributions": 6,
-      "accepted": 6,
+      "points": 60.9,
+      "contributions": 9,
+      "accepted": 9,
       "by_kind": {
-        "docs": 58.8
+        "docs": 60.9
       }
     }
   ],
   "contributors": 1,
-  "snapshot_hash": "86347e613695dae58883c891c0af10b88fc2de6a321080c6fd94d489f7ea3498"
+  "snapshot_hash": "78f6f22964e69437cbfdca13107f9a50dfcfef47316eb16bfd321cd2ca356d74"
 }

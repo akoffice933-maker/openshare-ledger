@@ -162,3 +162,47 @@ So that a year from now, when the project is worth something, nobody has to argu
 ---
 
 *Ask questions in Issues with the `question` label. We answer all of them.*
+
+
+---
+
+## Signing your commits
+
+Attribution rests on the `author` field until a commit is signed, and that
+field is forged with one line. A signature makes it cheap to check and
+expensive to fake.
+
+```bash
+# generate a key (or reuse an existing one)
+gpg --full-generate-key
+
+# tell git about it
+git config --global user.signingkey <KEY_ID>
+git config --global commit.gpgsign true
+
+# or sign a single commit
+git commit -S -m "your contribution"
+```
+
+SSH signing works too:
+
+```bash
+git config --global gpg.format ssh
+git config --global user.signingkey ~/.ssh/id_ed25519.pub
+```
+
+Check that it worked:
+
+```bash
+git log --pretty=format:'%h %G? %GK' -1
+#   a85d66e G 17F5CCDD3415567B      <- signed
+#   4e29eda N                       <- not signed
+```
+
+Unsigned contributions are still counted today, with `trust: unsigned` in
+the ledger. That will change once signing is common enough to require.
+
+---
+
+> Points have no monetary value, are not transferable, and do not entitle
+> anyone to payment.

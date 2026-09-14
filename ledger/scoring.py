@@ -33,7 +33,8 @@ def score_cycle(contribs, cfg, accepted: set[str], heldout: set[str],
 
     entries — список словарей, готовых к записи в леджер.
     """
-    from .validators import validate, rhash
+    from .validators import (validate, rhash, trust_level,
+                             signature_reason, Verdict)
 
     w = {k: cfg.w(k) for k in ("k_data", "k_model", "k_eval", "k_compute", "k_code", "k_docs")}
     subjective_kinds = {"code", "docs"}
@@ -42,9 +43,26 @@ def score_cycle(contribs, cfg, accepted: set[str], heldout: set[str],
     new_hashes: list[str] = []
     hashes_by_id: dict[str, list[str]] = {}
 
+    sig = cfg.raw.get("signature", {})
+    unsigned_factor = float(sig.get("unsigned_factor", 1.0))
+
     for c in contribs:
         v = validate(c, cfg, accepted, heldout)
         pts = raw_points(c.kind, v, w) if v.ok else 0.0
+
+        # Атрибуция держится на полях author, пока коммит не подписан.
+        # Уровень записываем всегда; на числа влияет только если так
+        # настроено — иначе все существующие вклады обнулятся разом.
+        trust = trust_level(c)
+        if trust == "invalid":
+            v = Verdict(False, v.kind, v.metrics,
+                        v.reasons + [signature_reason(trust)])
+            pts = 0.0
+        elif trust == "unsigned" and unsigned_factor < 1.0:
+            pts *= unsigned_factor
+            if v.ok:
+                v = Verdict(v.ok, v.kind, v.metrics,
+                            v.reasons + [signature_reason(trust)])
         # принятые данные пополняют множество известных хешей
         if v.ok and c.kind == "data":
             taken: list[str] = []
@@ -68,6 +86,8 @@ def score_cycle(contribs, cfg, accepted: set[str], heldout: set[str],
             "ok": v.ok,
             "reasons": v.reasons,
             "metrics": v.metrics,
+            "trust": trust,
+            "key": (getattr(c, "key", "") or "")[:16],
             "raw_points": round(pts, 4),
             "points": 0.0,
         })
