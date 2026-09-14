@@ -176,9 +176,28 @@ def parse_gen_time(raw: bytes) -> str:
     return dt.isoformat().replace("+00:00", "Z")
 
 
-def _openssl_verify(token: bytes, expected_hash: str, ca_file: str):
-    """Проверка подписи TSA через openssl. Возвращает (ok, сообщение)."""
-    import shutil, subprocess, tempfile
+def _system_ca_path() -> str:
+    """Каталог системных корневых сертификатов OpenSSL."""
+    import subprocess
+    try:
+        out = subprocess.run(["openssl", "version", "-d"],
+                             capture_output=True, text=True, timeout=15).stdout
+        d = out.split('"')[1] if '"' in out else "/usr/lib/ssl"
+    except Exception:
+        d = "/usr/lib/ssl"
+    return os.path.join(d, "certs")
+
+
+def _openssl_verify(token: bytes, expected_hash: str, ca_file: str | None = None):
+    """Проверка подписи TSA через openssl. Возвращает (ok, сообщение).
+
+    Без ca_file проверяем системными корнями. Это принципиально: если
+    для проверки якоря нужно скачать наш файл сертификата, мы просим
+    доверия к себе — а якорь затем и нужен, чтобы доверия не требовалось.
+    """
+    import subprocess, tempfile
+    trust = (["-CAfile", ca_file] if ca_file and os.path.exists(ca_file)
+             else ["-CApath", _system_ca_path()])
     with tempfile.TemporaryDirectory() as td:
         tp = os.path.join(td, "token.tsr")
         with open(tp, "wb") as fh:
@@ -186,7 +205,7 @@ def _openssl_verify(token: bytes, expected_hash: str, ca_file: str):
         try:
             r = subprocess.run(
                 ["openssl", "ts", "-verify", "-digest", expected_hash.lower(),
-                 "-in", tp, "-CAfile", ca_file],
+                 "-in", tp] + trust,
                 capture_output=True, text=True, timeout=60)
         except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
             return False, f"openssl недоступен: {exc}"
@@ -228,14 +247,6 @@ def verify_token(token: bytes, expected_hash: str,
         return out
 
     # Структура сошлась. Пробуем проверить подпись по-настоящему.
-    if not ca_file:
-        ca_file = os.path.join(os.path.dirname(os.path.dirname(
-            os.path.abspath(__file__))), "tsa", "freetsa-cacert.pem")
-
-    if not os.path.exists(ca_file):
-        out.update(ok=True, method="structure",
-                   warning="подпись не проверена: нет CA-сертификата TSA")
-        return out
     if not _has_openssl():
         out.update(ok=True, method="structure",
                    warning="подпись не проверена: openssl недоступен")
