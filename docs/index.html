@@ -250,7 +250,7 @@ footer a:hover{color:var(--oc-accent)}
       <a class="btn btn-ghost" href="#verify" data-i18n="cta2">Verify it yourself</a>
     </div>
     <div class="stats">
-      <div class="stat"><b>19</b><span data-i18n="s1">recorded contributions</span></div>
+      <div class="stat"><b>22</b><span data-i18n="s1">recorded contributions</span></div>
       <div class="stat"><b>2419.00</b><span data-i18n="s2">points allocated</span></div>
       <div class="stat"><b>2</b><span data-i18n="s3">contributor</span></div>
       <div class="stat"><b>2026-09</b><span data-i18n="s4">current cycle</span></div>
@@ -354,6 +354,21 @@ footer a:hover{color:var(--oc-accent)}
       <span class="mq-pts">0.00</span>
       <span class="mq-trust" data-t="unsigned"></span>
     </li><li class="mq-item">
+      <code class="mq-commit">f97665e1</code>
+      <span class="mq-subject">Merge latest main (data_paths includes…</span>
+      <span class="mq-pts">0.00</span>
+      <span class="mq-trust" data-t="unsigned"></span>
+    </li><li class="mq-item">
+      <code class="mq-commit">4091d33a</code>
+      <span class="mq-subject">Fix review records to match data schema…</span>
+      <span class="mq-pts">0.00</span>
+      <span class="mq-trust" data-t="unsigned"></span>
+    </li><li class="mq-item">
+      <code class="mq-commit">a1089b35</code>
+      <span class="mq-subject">Take the review records with explicit…</span>
+      <span class="mq-pts">0.00</span>
+      <span class="mq-trust" data-t="unsigned"></span>
+    </li><li class="mq-item">
       <code class="mq-commit">13f2ff2a</code>
       <span class="mq-subject">Initial commit: contribution ledger…</span>
       <span class="mq-pts">22.05</span>
@@ -446,6 +461,21 @@ footer a:hover{color:var(--oc-accent)}
     </li><li class="mq-item">
       <code class="mq-commit">abd41015</code>
       <span class="mq-subject">Merge the CPV review from the second…</span>
+      <span class="mq-pts">0.00</span>
+      <span class="mq-trust" data-t="unsigned"></span>
+    </li><li class="mq-item">
+      <code class="mq-commit">f97665e1</code>
+      <span class="mq-subject">Merge latest main (data_paths includes…</span>
+      <span class="mq-pts">0.00</span>
+      <span class="mq-trust" data-t="unsigned"></span>
+    </li><li class="mq-item">
+      <code class="mq-commit">4091d33a</code>
+      <span class="mq-subject">Fix review records to match data schema…</span>
+      <span class="mq-pts">0.00</span>
+      <span class="mq-trust" data-t="unsigned"></span>
+    </li><li class="mq-item">
+      <code class="mq-commit">a1089b35</code>
+      <span class="mq-subject">Take the review records with explicit…</span>
       <span class="mq-pts">0.00</span>
       <span class="mq-trust" data-t="unsigned"></span>
     </li></ul></div>
@@ -640,6 +670,30 @@ footer a:hover{color:var(--oc-accent)}
       <td class="c-trust" data-lang="ru"><span class="trust" data-t="unsigned"></span></td>
       <td class="c-pts">0.00</td>
     </tr>
+<tr>
+      <td class="c-commit"><code>f97665e1</code></td>
+      <td class="c-kind"><span class="pill">data</span></td>
+      <td class="c-subject">Merge latest main (data_paths includes tasks/,…</td>
+      <td class="c-trust" data-lang="en"><span class="trust" data-t="unsigned"></span></td>
+      <td class="c-trust" data-lang="ru"><span class="trust" data-t="unsigned"></span></td>
+      <td class="c-pts">0.00</td>
+    </tr>
+<tr>
+      <td class="c-commit"><code>4091d33a</code></td>
+      <td class="c-kind"><span class="pill">data</span></td>
+      <td class="c-subject">Fix review records to match data schema…</td>
+      <td class="c-trust" data-lang="en"><span class="trust" data-t="unsigned"></span></td>
+      <td class="c-trust" data-lang="ru"><span class="trust" data-t="unsigned"></span></td>
+      <td class="c-pts">0.00</td>
+    </tr>
+<tr>
+      <td class="c-commit"><code>a1089b35</code></td>
+      <td class="c-kind"><span class="pill">data</span></td>
+      <td class="c-subject">Take the review records with explicit prompt and…</td>
+      <td class="c-trust" data-lang="en"><span class="trust" data-t="unsigned"></span></td>
+      <td class="c-trust" data-lang="ru"><span class="trust" data-t="unsigned"></span></td>
+      <td class="c-pts">0.00</td>
+    </tr>
         </tbody>
       </table>
     </div>
@@ -656,14 +710,14 @@ footer a:hover{color:var(--oc-accent)}
 
 <b>python3 -m ledger verify --anchors</b>   <span class="c"># chain + independent timestamp</span>
 <b>python3 -m ledger verify --recompute</b>  <span class="c"># do the points match git?</span>
-<b>python3 -m ledger selftest</b>            <span class="c"># 19 entries, 23 guarantees</span>
+<b>python3 -m ledger selftest</b>            <span class="c"># 22 entries, 23 guarantees</span>
 
-<span class="ok">&#10004;</span> chain intact: 19 records
-<span class="ok">&#10004;</span> 2026-09: root ffacf1f86749… — TSA signature verified, 2026-09-15T12:47:58Z</pre>
+<span class="ok">&#10004;</span> chain intact: 22 records
+<span class="ok">&#10004;</span> 2026-09: root 4425b5a2663f… — TSA signature verified, 2026-09-15T12:54:30Z</pre>
     <div class="grid" style="margin-top:16px">
-      <div class="card"><h3>ffacf1f867490ae8…</h3><p data-i18n="r1">Ledger root hash (SHA-256)</p></div>
+      <div class="card"><h3>4425b5a2663f0c8f…</h3><p data-i18n="r1">Ledger root hash (SHA-256)</p></div>
       <div class="card"><h3>d1ad2b0c2a1e48a7…</h3><p data-i18n="r2">Scoring config hash — weights are public and versioned</p></div>
-      <div class="card"><h3>2026-09-15T12:47:58Z</h3><p data-i18n="r3">Independent RFC 3161 timestamp</p></div>
+      <div class="card"><h3>2026-09-15T12:54:30Z</h3><p data-i18n="r3">Independent RFC 3161 timestamp</p></div>
     </div>
   </div>
 </section>
