@@ -91,6 +91,22 @@ def _numstat(repo: str, commit: str) -> dict[str, tuple[int, int]]:
     return out
 
 
+# Поля, в которых разметчик пишет ответ. Человеку яснее «human_cpv»,
+# чем «completion», поэтому схема задания называет вещи по-человечески,
+# а к канону приводит их этот маппинг. Иначе вернувшийся файл не прошёл
+# бы проверку схемы и работа пропала бы зря.
+ANNOTATION_FIELDS = {"title": "prompt", "human_cpv": "completion"}
+
+
+def _normalize_annotation(obj: dict) -> dict:
+    out = dict(obj)
+    for src, dst in ANNOTATION_FIELDS.items():
+        if src in obj and dst not in out:
+            v = obj[src]
+            out[dst] = "" if v is None else str(v)
+    return out
+
+
 def _load_data(text: str) -> list[dict]:
     rows = []
     for line in text.splitlines():
@@ -102,7 +118,7 @@ def _load_data(text: str) -> list[dict]:
         except json.JSONDecodeError:
             continue
         if isinstance(obj, dict):
-            rows.append(obj)
+            rows.append(_normalize_annotation(obj))
     return rows
 
 
