@@ -85,9 +85,32 @@ def validate_data(records: list[dict], cfg, accepted: set[str], heldout: set[str
     return Verdict(True, "data", m, [])
 
 
+# Тендерная документация насыщена справочными номерами — CIG в Италии,
+# CUP, номера лотов, идентификаторы извещений. По длине они неотличимы от
+# телефона, и без оговорки ниже каждый второй итальянский тендер блокировался
+# бы как персональные данные. Смотрим поэтому не только на цифры, но и на то,
+# чем они названы: «CIG 9454059849» — это номер процедуры, а не чей-то телефон.
+REF_CODE_RE = re.compile(
+    r"(?:\bcig\b|\bcup\b|\bcodice\b|\bid\b|\bno\.?\b|\bref\b|"
+    r"\bnotice\b|\blot\b|\bномер\b|\b№)\s*[:#]?\s*\d[\d\s-]{6,}",
+    re.IGNORECASE)
+
+
+def _phone_hits(blob: str) -> list:
+    """Номера, похожие на телефон, кроме явно помеченных как справочные."""
+    hits = []
+    for m in PHONE_RE.finditer(blob):
+        # есть ли перед числом слово-маркер справочного кода?
+        left = blob[max(0, m.start() - 24):m.start()]
+        if REF_CODE_RE.search(left + m.group(0)):
+            continue
+        hits.append(m.group(0))
+    return hits
+
+
 def _has_pii(rec: dict, markers: list[str]) -> bool:
     blob = canon(rec)
-    if EMAIL_RE.search(blob) or PHONE_RE.search(blob) or IBAN_RE.search(blob):
+    if EMAIL_RE.search(blob) or _phone_hits(blob) or IBAN_RE.search(blob):
         return True
     if CARD_RE.search(blob):
         return True

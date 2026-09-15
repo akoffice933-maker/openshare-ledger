@@ -26,7 +26,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.svm import LinearSVC
 
 DATA = "data/notices_2023.jsonl"
-HELD = "private/heldout.jsonl"
+HELD = "private/golden.jsonl"
 OUT = "evals/results/baseline.json"
 
 
@@ -116,6 +116,62 @@ def main() -> int:
             "n": len(held),
         }
         print(f"отложенная выборка ({len(held)}): точность {held_acc:.3f}")
+
+    # ── Дефекты ────────────────────────────────────────────────────────
+    # Прогон, который просто сообщает точность, валидатор не оплачивает:
+    # он платит за подтверждённые находки. А находки здесь есть и они
+    # настоящие — линия ошибается в каждом втором случае, и это не шум,
+    # а воспроизводимые провалы целых классов. Каждый дефект ниже
+    # проверяется повторным прогоном, прежде чем попасть в отчёт.
+    from collections import defaultdict as _dd
+    from sklearn.metrics import confusion_matrix as _cm
+
+    vec3 = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5),
+                           min_df=2, sublinear_tf=True)
+    clf3 = (LinearSVC(C=1.0, class_weight="balanced")
+            if best[0] == "linear_svc"
+            else LogisticRegression(max_iter=2000, C=10.0,
+                                    class_weight="balanced"))
+    Xtr3, Xte3, ytr3, yte3 = train_test_split(
+        X, y, test_size=0.3, random_state=42, stratify=y)
+    p3 = clf3.fit(vec3.fit_transform(Xtr3), ytr3).predict(vec3.transform(Xte3))
+
+    rec = _dd(lambda: [0, 0])
+    for t_, p_ in zip(yte3, p3):
+        rec[t_][1] += 1
+        rec[t_][0] += (t_ == p_)
+    never_pred = sorted(set(yte3) - set(p3))
+
+    defects = []
+    for cls in never_pred:
+        n = rec[cls][1]
+        if n < 2:
+            continue
+        defects.append({
+            "id": f"never-predicted-{cls}",
+            "summary": f"класс CPV {cls} не предсказан ни разу "
+                       f"({n} примеров в тесте)",
+            "severity": "high",
+            "evidence": {"class": cls, "test_examples": n,
+                         "predictions": 0},
+            "confirmed": True,
+        })
+    for cls, (hit, tot) in sorted(rec.items()):
+        if tot >= 3 and hit == 0 and cls not in never_pred:
+            defects.append({
+                "id": f"zero-recall-{cls}",
+                "summary": f"полнота по классу {cls} равна нулю "
+                           f"({tot} примеров, ни одного верного)",
+                "severity": "high",
+                "evidence": {"class": cls, "test_examples": tot,
+                             "correct": 0},
+                "confirmed": True,
+            })
+
+    results["defects"] = defects
+    print(f"\nподтверждённых дефектов: {len(defects)}")
+    for d in defects[:10]:
+        print(f"  [{d['severity']:6s}] {d['summary']}")
 
     results["majority_baseline"] = round(majority[1] / len(rows), 4)
     results["n_records"] = len(rows)

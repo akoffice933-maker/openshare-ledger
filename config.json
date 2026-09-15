@@ -50,7 +50,7 @@
     ],
     "min_harness_version": "0.1.0",
     "max_compute_hours_per_proof": 1000,
-    "heldout_dataset_hash": "275746e2d452634b089383c12e3b137c785b9fb03cd4e35778f01ad6f0190576",
+    "heldout_dataset_hash": "921f7462c67178e1bf174007024b2153541e92adaed40620388644e3e9319ee3",
     "pii_key_markers": [
       "name",
       "phone",

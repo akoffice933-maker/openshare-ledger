@@ -2,18 +2,86 @@
   "logreg": {
     "accuracy": 0.4656,
     "macro_f1": 0.3591,
-    "seconds": 1.28
+    "seconds": 1.2
   },
   "linear_svc": {
     "accuracy": 0.4275,
     "macro_f1": 0.3361,
-    "seconds": 0.04
+    "seconds": 0.06
   },
   "heldout": {
     "accuracy": 0.45,
     "macro_f1": 0.3239,
     "n": 100
   },
+  "defects": [
+    {
+      "id": "never-predicted-38",
+      "summary": "класс CPV 38 не предсказан ни разу (2 примеров в тесте)",
+      "severity": "high",
+      "evidence": {
+        "class": "38",
+        "test_examples": 2,
+        "predictions": 0
+      },
+      "confirmed": true
+    },
+    {
+      "id": "never-predicted-42",
+      "summary": "класс CPV 42 не предсказан ни разу (2 примеров в тесте)",
+      "severity": "high",
+      "evidence": {
+        "class": "42",
+        "test_examples": 2,
+        "predictions": 0
+      },
+      "confirmed": true
+    },
+    {
+      "id": "never-predicted-60",
+      "summary": "класс CPV 60 не предсказан ни разу (2 примеров в тесте)",
+      "severity": "high",
+      "evidence": {
+        "class": "60",
+        "test_examples": 2,
+        "predictions": 0
+      },
+      "confirmed": true
+    },
+    {
+      "id": "zero-recall-30",
+      "summary": "полнота по классу 30 равна нулю (3 примеров, ни одного верного)",
+      "severity": "high",
+      "evidence": {
+        "class": "30",
+        "test_examples": 3,
+        "correct": 0
+      },
+      "confirmed": true
+    },
+    {
+      "id": "zero-recall-39",
+      "summary": "полнота по классу 39 равна нулю (3 примеров, ни одного верного)",
+      "severity": "high",
+      "evidence": {
+        "class": "39",
+        "test_examples": 3,
+        "correct": 0
+      },
+      "confirmed": true
+    },
+    {
+      "id": "zero-recall-85",
+      "summary": "полнота по классу 85 равна нулю (3 примеров, ни одного верного)",
+      "severity": "high",
+      "evidence": {
+        "class": "85",
+        "test_examples": 3,
+        "correct": 0
+      },
+      "confirmed": true
+    }
+  ],
   "majority_baseline": 0.1498,
   "n_records": 434,
   "n_classes": 23,

@@ -248,6 +248,26 @@ def run(cfg: Config) -> int:
         check("Решение без обоснования или с непонятным вердиктом не записывается",
               _empty_rejected and _bad_decision_rejected)
 
+    # 16. Справочный номер тендера не есть персональные данные.
+    # Тендерная документация полна кодов вроде итальянского CIG; без этой
+    # оговорки защита от PII отсекала бы корректные данные пачками.
+    from .validators import _has_pii as _pii
+    _mk = ["name", "phone", "email", "address", "passport", "iban", "ssn"]
+    _cases = [
+        ("CIG 9454059849", False),          # номер процедуры, не телефон
+        ("CUP F81B21004560001", False),     # то же
+        ("+7 495 123 45 67", True),         # настоящий телефон
+        ("9454059849", True),               # те же цифры без пометки — нельзя спутать
+        ("a.b@example.org", True),
+        ("DE89 3704 0044 0532 0130 00", True),
+    ]
+    _bad = [txt for txt, want in _cases
+            if _pii({"prompt": txt, "completion": "34"}, _mk) != want]
+    check("Справочный номер тендера не считается персональными данными, "
+          "а настоящий телефон — считается",
+          not _bad, f"ошибочно обработано: {_bad}" if _bad else
+          "6 из 6 примеров классифицированы верно")
+
     bad_n = sum(1 for ok_, _ in _results if not ok_)
     ok_n = len(_results) - bad_n
     print(f"\nИтого: {ok_n}/{len(_results)} гарантий подтверждено")
