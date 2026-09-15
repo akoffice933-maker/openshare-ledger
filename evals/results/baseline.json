@@ -1,0 +1,22 @@
+{
+  "logreg": {
+    "accuracy": 0.4656,
+    "macro_f1": 0.3591,
+    "seconds": 1.28
+  },
+  "linear_svc": {
+    "accuracy": 0.4275,
+    "macro_f1": 0.3361,
+    "seconds": 0.04
+  },
+  "heldout": {
+    "accuracy": 0.45,
+    "macro_f1": 0.3239,
+    "n": 100
+  },
+  "majority_baseline": 0.1498,
+  "n_records": 434,
+  "n_classes": 23,
+  "task": "cpv2-from-title",
+  "languages": 22
+}
