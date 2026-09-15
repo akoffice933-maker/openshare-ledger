@@ -24,6 +24,21 @@ def canon(obj) -> str:
     return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
 
+# Значения-пустышки. Разметчик оставляет метку пустой, когда из заголовка
+# категория не выводится — это честный ответ, и схема его не берёт. Но как
+# только null превращается в строку "null", проверка «непусто» начинает
+# пропускать мусор как полноценную метку. Потому пустышки перечислены явно.
+PLACEHOLDERS = {
+    "", "null", "none", "nil", "n/a", "na", "-", "--", "?", "??",
+    "unknown", "undefined", "nan", "нет", "неизвестно", "н/д",
+}
+
+
+def _blank(v) -> bool:
+    """Пусто ли значение с учётом строк-пустышек."""
+    return v is None or str(v).strip().lower() in PLACEHOLDERS
+
+
 def rhash(obj) -> str:
     return hashlib.sha256(canon(obj).encode("utf-8")).hexdigest()
 
@@ -59,7 +74,7 @@ def validate_data(records: list[dict], cfg, accepted: set[str], heldout: set[str
     newly: list[str] = []
 
     for rec in records:
-        if required and not all(k in rec and str(rec[k]).strip() for k in required):
+        if required and not all(k in rec and not _blank(rec[k]) for k in required):
             m["invalid"] += 1
             continue
         h = rhash(rec)

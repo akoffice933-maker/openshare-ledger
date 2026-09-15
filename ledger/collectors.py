@@ -103,7 +103,11 @@ def _normalize_annotation(obj: dict) -> dict:
     for src, dst in ANNOTATION_FIELDS.items():
         if src in obj and dst not in out:
             v = obj[src]
-            out[dst] = "" if v is None else str(v)
+            # None превращается в пустую строку, а не в строку «null»:
+            # иначе метка-пустышка пройдёт проверку «непусто».
+            out[dst] = "" if v is None else str(v).strip()
+            if out[dst].strip().lower() == "null":
+                out[dst] = ""
     return out
 
 

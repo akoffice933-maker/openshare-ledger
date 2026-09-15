@@ -283,6 +283,18 @@ def run(cfg: Config) -> int:
           f"попугайство: {'отклонено' if not _vp.ok else 'ПРИНЯТО'}, "
           f"проверка: {'принята' if _vh.ok else 'ОТКЛОНЕНА'}")
 
+    # 18. Метка-пустышка не проходит под видом настоящей.
+    # Проверка «значение непустое» ловит null, но пропускает строку
+    # "null", а она возникает сама собой при пересылке данных: метку
+    # оставляют пустой, если из заголовка категория не выводится, и это
+    # честный ответ — но четыре символа мусора не должны обучать модель.
+    _ph = [{"prompt": f"p{i}", "completion": v}
+           for i, v in enumerate(["null", "None", "n/a", "-", "нет", "unknown"])]
+    _vp2 = validate(_contrib("data", {"records": _ph}), cfg, set(), heldout)
+    check("Метка-пустышка не проходит как настоящая метка",
+          _vp2.metrics["invalid"] == len(_ph),
+          f"отсечено {_vp2.metrics['invalid']} из {len(_ph)}")
+
     bad_n = sum(1 for ok_, _ in _results if not ok_)
     ok_n = len(_results) - bad_n
     print(f"\nИтого: {ok_n}/{len(_results)} гарантий подтверждено")
