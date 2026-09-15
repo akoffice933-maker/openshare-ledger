@@ -12,7 +12,9 @@ import sys
 import tempfile
 
 from . import config as cfgmod
-from . import collectors, snapshot as snapmod, anchor as anchormod, report as reportmod
+from . import (collectors, snapshot as snapmod, anchor as anchormod,
+               report as reportmod)
+from .adjustments import Adjustments, DECISIONS, CONTEST_DAYS
 from .config import Config, cycle_budget, cycles_between, load_config
 from .scoring import score_cycle
 from .store import Ledger
@@ -158,14 +160,16 @@ def cmd_score(a) -> int:
     print(f"Всего начислено: {ledger.total_points():.2f}")
 
     if not a.no_snapshot:
-        snap = snapmod.build(cfg, ledger, a.cycle)
+        snap = snapmod.build(cfg, ledger, a.cycle, Adjustments.for_config(cfg))
         jp, mp = snapmod.write(cfg, snap)
         print(f"Снимок: {jp}")
         if a.anchor:
             rec = anchormod.write_anchor(cfg, snap, dry=not a.publish)
             print(f"Якорь ({rec['status']}, {rec['target']}): root {snap['root'][:16]}…")
     if not a.no_report:
-        out = reportmod.write(cfg, ledger, snapmod.build(cfg, ledger, a.cycle),
+        out = reportmod.write(cfg, ledger,
+                                  snapmod.build(cfg, ledger, a.cycle,
+                                                Adjustments.for_config(cfg)),
                               _anchors(cfg), os.path.join(cfg.root, "report.html"))
         print(f"Отчёт: {out}")
     return 0
@@ -178,6 +182,15 @@ def cmd_verify(a) -> int:
     print(f"[цепочка] {msg}")
     if not ok:
         return 1
+
+    # Корректировки — отдельная цепочка. Если файл есть, молча не
+    # пропускаем: непроверенная цепочка решений равна её отсутствию.
+    adj = Adjustments.for_config(cfg)
+    if adj.entries:
+        a_ok, a_msg = adj.verify()
+        print(f"[корректировки] {a_msg}")
+        if not a_ok:
+            return 1
 
     if a.anchors:
         if _verify_anchors(cfg):
@@ -256,7 +269,8 @@ def _last_cycle(ledger: Ledger) -> str:
 def cmd_snapshot(a) -> int:
     cfg = load_config(a.root)
     ledger = _ledger(cfg)
-    snap = snapmod.build(cfg, ledger, a.cycle or _last_cycle(ledger))
+    snap = snapmod.build(cfg, ledger, a.cycle or _last_cycle(ledger),
+                         Adjustments.for_config(cfg))
     jp, mp = snapmod.write(cfg, snap)
     print(f"{jp}\n{mp}")
     if a.anchor:
@@ -279,6 +293,59 @@ def cmd_report(a) -> int:
     print(out)
     return 0
 
+
+def cmd_dispute(a) -> int:
+    """Записать решение по спору.
+
+    Корректировка идёт в отдельную цепочку: запись вклада остаётся
+    нетронутой, иначе леджер перестанет быть воспроизводимым из git.
+    """
+    import getpass
+    cfg = load_config(a.root)
+    ledger = _ledger(cfg)
+    hits = [c for c in ledger.contributions() if c["id"] == a.entry]
+    if not hits:
+        print(f"нет такой записи в леджере: {a.entry}")
+        return 1
+    target = hits[0]
+    cycle = a.cycle or str(target["ts"])[:7]
+
+    adj = Adjustments.for_config(cfg)
+    try:
+        rec = adj.append(
+            entry_id=a.entry, delta=a.delta, decision=a.decision,
+            reason=a.reason, cycle=cycle,
+            actor=a.actor or getpass.getuser(),
+        )
+    except ValueError as exc:
+        print(f"корректировка отклонена: {exc}")
+        return 1
+    print(f"Корректировка #{rec['seq']}: {a.decision}, {a.delta:+.2f} points")
+    print(f"  запись {a.entry} ({target['contributor']}, было {target['points']:.2f})")
+    print(f"  обоснование: {a.reason}")
+    print(f"  файл: {os.path.relpath(adj.path, cfg.root)}")
+    if abs(a.delta) > abs(float(target["points"])):
+        print(f"  ⚠ корректировка больше самой записи "
+              f"({target['points']:.2f}) — проверьте обоснование")
+    return 0
+
+
+def cmd_disputes(a) -> int:
+    cfg = load_config(a.root)
+    adj = Adjustments.for_config(cfg)
+    ok, msg = adj.verify()
+    print(f"[цепочка] {msg}")
+    rows = adj.for_cycle(a.cycle) if a.cycle else adj.entries
+    if not rows:
+        print("корректировок нет")
+        return 0 if ok else 1
+    print()
+    for e in rows:
+        print(f"  #{e['seq']} {e['ts'][:10]}  {e['decision']:8s} "
+              f"{e['delta']:+8.2f}  {e['entry_id']}  {e['actor']}")
+        print(f"       {e['reason']}")
+    print(f"\nИтого дельта: {sum(e['delta'] for e in rows):+.2f} points")
+    return 0 if ok else 1
 
 def cmd_status(a) -> int:
     cfg = load_config(a.root)
@@ -374,6 +441,20 @@ def main(argv=None) -> int:
     r.add_argument("--cycle", default=None)
     r.add_argument("--out", default="report.html")
     r.set_defaults(f=cmd_report)
+
+    d = sub.add_parser("dispute", help="решение по спору: корректировка леджера")
+    d.add_argument("--entry", required=True, help="id записи, к которой относится спор")
+    d.add_argument("--delta", required=True, type=float,
+                   help="изменение points со знаком: -10.5 или +3.0")
+    d.add_argument("--decision", required=True, choices=list(DECISIONS))
+    d.add_argument("--reason", required=True, help="обоснование: попадает в леджер")
+    d.add_argument("--cycle", default=None)
+    d.add_argument("--actor", default=None, help="кто принял решение")
+    d.set_defaults(f=cmd_dispute)
+
+    dz = sub.add_parser("disputes", help="показать корректировки")
+    dz.add_argument("--cycle", default=None)
+    dz.set_defaults(f=cmd_disputes)
 
     sub.add_parser("status", help="краткая сводка").set_defaults(f=cmd_status)
 

@@ -9,11 +9,21 @@ import os
 from datetime import datetime, timezone
 
 from . import config as cfgmod
+from .adjustments import Adjustments
 
 
-def build(cfg, ledger, cycle: str) -> dict:
+def build(cfg, ledger, cycle: str,
+          adjustments: Adjustments | None = None) -> dict:
     accounts = ledger.totals()
     ranked = sorted(accounts.values(), key=lambda a: -a["points"])
+
+    # Корректировки не пересчитываются из git, поэтому лежат отдельно.
+    # Но их корень попадает в снимок — иначе якорь подтверждал бы только
+    # половину итога, а вторую половину можно было бы править незаметно.
+    adj_sum = adjustments.sum_for_cycle(cycle) if adjustments else 0.0
+    adj_head = adjustments.head if adjustments else "0" * 64
+    adj_count = len(adjustments.for_cycle(cycle)) if adjustments else 0
+
     snap = {
         "project": cfg.project,
         "cycle": cycle,
@@ -24,6 +34,10 @@ def build(cfg, ledger, cycle: str) -> dict:
         "head": ledger.head,
         "root": ledger.root,
         "total_points": ledger.total_points(),
+        "adjustments_points": adj_sum,
+        "adjustments_count": adj_count,
+        "adjustments_head": adj_head,
+        "net_points": round(ledger.total_points() + adj_sum, 2),
         "cycle_points": ledger.cycle_points(cycle),
         "cycle_budget": round(cfgmod.cycle_budget(cfg, cycle), 2),
         "accounts": ranked,

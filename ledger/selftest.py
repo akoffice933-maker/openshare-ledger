@@ -215,6 +215,39 @@ def run(cfg: Config) -> int:
           all(e.get("trust") in {"signed", "unsigned", "invalid"} for e in ent3),
           ", ".join(sorted({e.get("trust") for e in ent3})))
 
+    # 15. Корректировки: решение по спору не переписывает вклад.
+    # Это то, что сохраняет воспроизводимость: contributions выводятся
+    # из git, решения людей — нет, поэтому они лежат отдельно.
+    import tempfile as _tf
+    from .adjustments import Adjustments as _Adj
+    with _tf.TemporaryDirectory() as _td:
+        _a = _Adj(os.path.join(_td, "a.jsonl"))
+        _a.append("e1", -5.0, "partial", "часть правок сделана ботом",
+                  "2026-09", "moderator")
+        _a.append("e2", 2.5, "upheld", "вклад подтверждён", "2026-09", "moderator")
+        _ok, _msg = _a.verify()
+        check("Цепочка корректировок проверяется", _ok, _msg)
+
+        _a.entries[0]["delta"] = -500.0        # подменяем решение задним числом
+        _ok2, _msg2 = _a.verify()
+        check("Подмена решения по спору обнаруживается", not _ok2,
+              _msg2)
+
+    with _tf.TemporaryDirectory() as _td:
+        _b = _Adj(os.path.join(_td, "b.jsonl"))
+        try:
+            _b.append("e1", -5.0, "upheld", "   ", "2026-09", "m")
+            _empty_rejected = False
+        except ValueError:
+            _empty_rejected = True
+        try:
+            _b.append("e1", -5.0, "своё", "текст", "2026-09", "m")
+            _bad_decision_rejected = False
+        except ValueError:
+            _bad_decision_rejected = True
+        check("Решение без обоснования или с непонятным вердиктом не записывается",
+              _empty_rejected and _bad_decision_rejected)
+
     bad_n = sum(1 for ok_, _ in _results if not ok_)
     ok_n = len(_results) - bad_n
     print(f"\nИтого: {ok_n}/{len(_results)} гарантий подтверждено")

@@ -1,0 +1,53 @@
+name: Спор по начислению
+description: Оспорить начисление points за конкретный вклад
+title: "[Спор] "
+labels: ["dispute"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Срок оспаривания — **14 дней** с даты публикации снимка цикла.
+        Решение публикуется как запись в леджере: сам вклад остаётся
+        нетронутым, к нему добавляется корректировка. Леджер append-only,
+        задним числом ничего не переписывается.
+
+  - type: input
+    id: entry
+    attributes:
+      label: Идентификатор записи
+      description: Поле id из state/entries.jsonl
+      placeholder: "1c64afc0f57e553d"
+    validations:
+      required: true
+
+  - type: input
+    id: commit
+    attributes:
+      label: Коммит
+      placeholder: "13f2ff2a"
+    validations:
+      required: true
+
+  - type: textarea
+    id: claim
+    attributes:
+      label: Что неверно
+      description: Конкретно: что в начислении не так и почему
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Подтверждение
+      description: Ссылки, логи, выкладки — всё, чем можно проверить утверждение
+    validations:
+      required: true
+
+  - type: textarea
+    id: wanted
+    attributes:
+      label: Чего вы просите
+      description: Например «снизить начисление», «признать вклад полностью»
+    validations:
+      required: true

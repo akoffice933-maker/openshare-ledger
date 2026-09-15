@@ -149,7 +149,7 @@ An honest list, so a stub is not mistaken for a finished system:
 | Not done | Why | What is needed |
 |---|---|---|
 | Real anchor publication | **Done** | DigiCert TSA, verified against system root CAs — `ledger verify --anchors` |
-| Dispute procedure | Requires roles and notifications | Issue template + an `adjustment` entry in the ledger |
+| Dispute procedure | **Done** | Issue template (14 days) + `ledger dispute` writes a separate append-only chain |
 | Signed commits | Demo repository has no GPG | Check `git verify-commit` in the collector |
 | Multiple repositories | One project, one ledger | Config with a list of repositories |
 | Payout export | No legal entity, no revenue | After Phase 3: export in accounting format + KYC |
@@ -163,7 +163,7 @@ In order of importance:
 
 1. ~~**Signed commits**~~ — **done**: every entry records a trust level from the git signature; `selftest` proves a spoofed author cannot be recorded as `signed`. Next step is moving `signature.unsigned_factor` below 1.0.
 2. ~~**Real anchoring**~~ — **done**: DigiCert TSA, `snapshot --anchor --publish`. Verified with `verify --anchors`; needs no file from this repository. Sigstore Rekor remains an option for inclusion proofs.
-3. **Dispute procedure** — 14 days to contest; the decision is published as a ledger entry.
+3. ~~**Dispute procedure**~~ — **done**: issue template with a 14-day window; `ledger dispute` records the decision in a separate chain so the contribution itself stays reproducible from git.
 4. **Weight calibration** against the chosen domain: currently placeholders.
 5. **Compute proof by re-run** — deterministic re-execution rather than trust in `result_hash`.
 
