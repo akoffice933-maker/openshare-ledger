@@ -9,7 +9,8 @@
   },
   "git": {
     "data_paths": [
-      "data/"
+      "data/",
+      "tasks/"
     ],
     "model_paths": [
       "model/"
@@ -59,7 +60,8 @@
       "passport",
       "iban",
       "ssn"
-    ]
+    ],
+    "max_agreement_with_system": 0.95
   },
   "anchor": {
     "target": "rfc3161",

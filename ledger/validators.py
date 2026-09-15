@@ -77,12 +77,49 @@ def validate_data(records: list[dict], cfg, accepted: set[str], heldout: set[str
         if h not in accepted:
             m["new"] += 1
 
+    # Проверка на попугайство. Задание выдаётся с готовым предположением
+    # системы, и переписать его в ответ — самый быстрый путь к points:
+    # схема соблюдена, работа не сделана. При точности базовой линии 46,6%
+    # совпасть с нею почти во всём честно нельзя.
+    paroted = 0
+    comparable = 0
+    for rec in records:
+        sys_guess = rec.get("system_cpv")
+        if sys_guess is None or not str(sys_guess).strip():
+            continue
+        if not all(k in rec and str(rec[k]).strip() for k in required):
+            continue
+        comparable += 1
+        if str(rec.get("completion", "")).strip() == str(sys_guess).strip():
+            paroted += 1
+    # Считаем только там, где система была не уверена: соглашаться с
+    # очевидным нормально, соглашаться с сомнительным — нет.
+    weak = [r for r in records
+            if r.get("confidence") is not None
+            and float(r.get("confidence") or 0) < 0.5]
+    weak_agree = sum(1 for r in weak
+                     if str(r.get("completion", "")).strip()
+                     == str(r.get("system_cpv", "")).strip())
+    m["agreement_with_system"] = (round(paroted / comparable, 4)
+                                  if comparable else None)
+    m["weak_agreement"] = (round(weak_agree / len(weak), 4) if weak else None)
+    m["weak_items"] = len(weak)
+
+    max_agree = float(cfg.val("max_agreement_with_system", 0.95))
+    reasons = []
+    if m["weak_agreement"] is not None and len(weak) >= 20:
+        if m["weak_agreement"] > max_agree:
+            reasons.append(
+                f"совпадение с системой на сомнительных заданиях "
+                f"{m['weak_agreement']:.0%} при пороге {max_agree:.0%} — "
+                f"независимой проверки не видно")
+
     novelty = (m["new"] / m["accepted"]) if m["accepted"] else 0.0
     m["novelty"] = round(novelty, 4)
-    ok = m["accepted"] > 0
-    if not ok:
-        return Verdict(False, "data", m, ["ни одна запись не прошла проверку"])
-    return Verdict(True, "data", m, [])
+    ok = m["accepted"] > 0 and not reasons
+    if not ok and not reasons:
+        reasons = ["ни одна запись не прошла проверку"]
+    return Verdict(ok, "data", m, reasons)
 
 
 # Тендерная документация насыщена справочными номерами — CIG в Италии,

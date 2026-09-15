@@ -268,6 +268,21 @@ def run(cfg: Config) -> int:
           not _bad, f"ошибочно обработано: {_bad}" if _bad else
           "6 из 6 примеров классифицированы верно")
 
+    # 17. Ответ, переписанный из предположения системы, не оплачивается.
+    # Задание выдаётся уже с догадкой, и скопировать её в ответ — самый
+    # быстрый путь к points: схема соблюдена, работа не сделана.
+    _sys = [{"prompt": f"p{i}", "completion": f"c{i}",
+             "system_cpv": f"c{i}", "confidence": 0.2} for i in range(25)]
+    _hon = [{"prompt": f"p{i}", "completion": f"c{i}",
+             "system_cpv": f"x{i}", "confidence": 0.2} for i in range(25)]
+    _vp = validate(_contrib("data", {"records": _sys}), cfg, set(), heldout)
+    _vh = validate(_contrib("data", {"records": _hon}), cfg, set(), heldout)
+    check("Копирование догадки системы не оплачивается, независимая "
+          "проверка — оплачивается",
+          not _vp.ok and _vh.ok,
+          f"попугайство: {'отклонено' if not _vp.ok else 'ПРИНЯТО'}, "
+          f"проверка: {'принята' if _vh.ok else 'ОТКЛОНЕНА'}")
+
     bad_n = sum(1 for ok_, _ in _results if not ok_)
     ok_n = len(_results) - bad_n
     print(f"\nИтого: {ok_n}/{len(_results)} гарантий подтверждено")
