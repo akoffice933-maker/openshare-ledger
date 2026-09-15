@@ -22,9 +22,9 @@
     ],
     "subjective_paths": [
       "src/",
-      "docs/",
       "README.md",
-      "CONTRIBUTING.md"
+      "CONTRIBUTING.md",
+      "tools/"
     ]
   },
   "weights": {
