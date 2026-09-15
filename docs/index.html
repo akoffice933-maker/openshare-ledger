@@ -250,8 +250,8 @@ footer a:hover{color:var(--oc-accent)}
       <a class="btn btn-ghost" href="#verify" data-i18n="cta2">Verify it yourself</a>
     </div>
     <div class="stats">
-      <div class="stat"><b>16</b><span data-i18n="s1">recorded contributions</span></div>
-      <div class="stat"><b>629.55</b><span data-i18n="s2">points allocated</span></div>
+      <div class="stat"><b>18</b><span data-i18n="s1">recorded contributions</span></div>
+      <div class="stat"><b>2145.10</b><span data-i18n="s2">points allocated</span></div>
       <div class="stat"><b>1</b><span data-i18n="s3">contributor</span></div>
       <div class="stat"><b>2026-09</b><span data-i18n="s4">current cycle</span></div>
     </div>
@@ -331,12 +331,22 @@ footer a:hover{color:var(--oc-accent)}
     </li><li class="mq-item">
       <code class="mq-commit">06b5a931</code>
       <span class="mq-subject">Corpus and a baseline number before any…</span>
-      <span class="mq-pts">465.00</span>
+      <span class="mq-pts">466.00</span>
       <span class="mq-trust" data-t="unsigned"></span>
     </li><li class="mq-item">
       <code class="mq-commit">06b5a931</code>
       <span class="mq-subject">Corpus and a baseline number before any…</span>
       <span class="mq-pts">0.00</span>
+      <span class="mq-trust" data-t="unsigned"></span>
+    </li><li class="mq-item">
+      <code class="mq-commit">809c06d9</code>
+      <span class="mq-subject">Rebuild the published page from the new…</span>
+      <span class="mq-pts">14.55</span>
+      <span class="mq-trust" data-t="unsigned"></span>
+    </li><li class="mq-item">
+      <code class="mq-commit">41164399</code>
+      <span class="mq-subject">Two real defects the corpus work turned…</span>
+      <span class="mq-pts">1500.00</span>
       <span class="mq-trust" data-t="unsigned"></span>
     </li><li class="mq-item">
       <code class="mq-commit">13f2ff2a</code>
@@ -411,12 +421,22 @@ footer a:hover{color:var(--oc-accent)}
     </li><li class="mq-item">
       <code class="mq-commit">06b5a931</code>
       <span class="mq-subject">Corpus and a baseline number before any…</span>
-      <span class="mq-pts">465.00</span>
+      <span class="mq-pts">466.00</span>
       <span class="mq-trust" data-t="unsigned"></span>
     </li><li class="mq-item">
       <code class="mq-commit">06b5a931</code>
       <span class="mq-subject">Corpus and a baseline number before any…</span>
       <span class="mq-pts">0.00</span>
+      <span class="mq-trust" data-t="unsigned"></span>
+    </li><li class="mq-item">
+      <code class="mq-commit">809c06d9</code>
+      <span class="mq-subject">Rebuild the published page from the new…</span>
+      <span class="mq-pts">14.55</span>
+      <span class="mq-trust" data-t="unsigned"></span>
+    </li><li class="mq-item">
+      <code class="mq-commit">41164399</code>
+      <span class="mq-subject">Two real defects the corpus work turned…</span>
+      <span class="mq-pts">1500.00</span>
       <span class="mq-trust" data-t="unsigned"></span>
     </li></ul></div>
 
@@ -576,7 +596,7 @@ footer a:hover{color:var(--oc-accent)}
       <td class="c-subject">Corpus and a baseline number before any model</td>
       <td class="c-trust" data-lang="en"><span class="trust" data-t="unsigned"></span></td>
       <td class="c-trust" data-lang="ru"><span class="trust" data-t="unsigned"></span></td>
-      <td class="c-pts">465.00</td>
+      <td class="c-pts">466.00</td>
     </tr>
 <tr>
       <td class="c-commit"><code>06b5a931</code></td>
@@ -585,6 +605,22 @@ footer a:hover{color:var(--oc-accent)}
       <td class="c-trust" data-lang="en"><span class="trust" data-t="unsigned"></span></td>
       <td class="c-trust" data-lang="ru"><span class="trust" data-t="unsigned"></span></td>
       <td class="c-pts">0.00</td>
+    </tr>
+<tr>
+      <td class="c-commit"><code>809c06d9</code></td>
+      <td class="c-kind"><span class="pill">docs</span></td>
+      <td class="c-subject">Rebuild the published page from the new ledger state</td>
+      <td class="c-trust" data-lang="en"><span class="trust" data-t="unsigned"></span></td>
+      <td class="c-trust" data-lang="ru"><span class="trust" data-t="unsigned"></span></td>
+      <td class="c-pts">14.55</td>
+    </tr>
+<tr>
+      <td class="c-commit"><code>41164399</code></td>
+      <td class="c-kind"><span class="pill">eval</span></td>
+      <td class="c-subject">Two real defects the corpus work turned up</td>
+      <td class="c-trust" data-lang="en"><span class="trust" data-t="unsigned"></span></td>
+      <td class="c-trust" data-lang="ru"><span class="trust" data-t="unsigned"></span></td>
+      <td class="c-pts">1500.00</td>
     </tr>
         </tbody>
       </table>
@@ -602,14 +638,14 @@ footer a:hover{color:var(--oc-accent)}
 
 <b>python3 -m ledger verify --anchors</b>   <span class="c"># chain + independent timestamp</span>
 <b>python3 -m ledger verify --recompute</b>  <span class="c"># do the points match git?</span>
-<b>python3 -m ledger selftest</b>            <span class="c"># 16 entries, 23 guarantees</span>
+<b>python3 -m ledger selftest</b>            <span class="c"># 18 entries, 23 guarantees</span>
 
-<span class="ok">&#10004;</span> chain intact: 16 records
-<span class="ok">&#10004;</span> 2026-09: root fef5a2272e54… — TSA signature verified, 2026-09-15T11:33:01Z</pre>
+<span class="ok">&#10004;</span> chain intact: 18 records
+<span class="ok">&#10004;</span> 2026-09: root 5c9e10292c69… — TSA signature verified, 2026-09-15T12:13:23Z</pre>
     <div class="grid" style="margin-top:16px">
-      <div class="card"><h3>fef5a2272e54cdd9…</h3><p data-i18n="r1">Ledger root hash (SHA-256)</p></div>
-      <div class="card"><h3>cbfa24ae17331438…</h3><p data-i18n="r2">Scoring config hash — weights are public and versioned</p></div>
-      <div class="card"><h3>2026-09-15T11:33:01Z</h3><p data-i18n="r3">Independent RFC 3161 timestamp</p></div>
+      <div class="card"><h3>5c9e10292c69bd09…</h3><p data-i18n="r1">Ledger root hash (SHA-256)</p></div>
+      <div class="card"><h3>c5f6d8ccd8ea8454…</h3><p data-i18n="r2">Scoring config hash — weights are public and versioned</p></div>
+      <div class="card"><h3>2026-09-15T12:13:23Z</h3><p data-i18n="r3">Independent RFC 3161 timestamp</p></div>
     </div>
   </div>
 </section>
